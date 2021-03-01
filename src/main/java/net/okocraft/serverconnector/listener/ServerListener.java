@@ -9,13 +9,21 @@ public class ServerListener implements Listener {
 
     @EventHandler
     public void onConnect(ServerConnectEvent e) {
+        var player = e.getPlayer();
         var serverName = e.getTarget().getName();
         var permission = "server." + serverName + ".connect";
 
-        if (!e.getPlayer().hasPermission(permission)) {
+        if (!player.hasPermission(permission)) {
             var message = "You don't have the permission to connect the server: " + permission;
-            e.getPlayer().sendMessage(new TextComponent(message));
+            var toSend = new TextComponent(message);
+
             e.setCancelled(true);
+
+            if (player.getServer() != null) {
+                player.sendMessage(toSend);
+            } else {
+                player.disconnect(toSend);
+            }
         }
     }
 }
