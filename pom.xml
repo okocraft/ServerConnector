@@ -126,6 +126,10 @@
                             <pattern>com.github.siroshun09.configapi</pattern>
                             <shadedPattern>${project.groupId}.lib.configapi</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.yaml.snakeyaml</pattern>
+                            <shadedPattern>${project.groupId}.lib.yaml</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
                 <executions>
