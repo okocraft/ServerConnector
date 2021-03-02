@@ -1,19 +1,25 @@
 package net.okocraft.serverconnector;
 
-import com.github.siroshun09.configapi.bungee.BungeeYamlFactory;
-import com.github.siroshun09.configapi.common.yaml.Yaml;
+import com.github.siroshun09.configapi.yaml.YamlConfiguration;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
 import net.okocraft.serverconnector.listener.PlayerListener;
 import net.okocraft.serverconnector.listener.ServerListener;
 
+import java.io.IOException;
+import java.util.logging.Level;
+
 public final class ServerConnectorPlugin extends Plugin {
 
-    private Yaml config;
+    private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
 
     @Override
     public void onLoad() {
-        config = BungeeYamlFactory.loadUnsafe(this, "config.yml");
+        try {
+            config.load();
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not load config.yml", e);
+        }
     }
 
     @Override
@@ -28,7 +34,7 @@ public final class ServerConnectorPlugin extends Plugin {
         getProxy().getPluginManager().unregisterListeners(this);
     }
 
-    public Yaml getConfig() {
+    public YamlConfiguration getConfig() {
         return config;
     }
 
