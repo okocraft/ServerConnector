@@ -1,7 +1,7 @@
 package net.okocraft.serverconnector.listener;
 
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.event.ServerDisconnectEvent;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -48,7 +48,7 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = 127)
-    public void onDisconnect(ServerDisconnectEvent e) {
+    public void onDisconnect(PlayerDisconnectEvent e) {
         var playerName = e.getPlayer().getName();
         var message = new TextComponent(playerName + " left the proxy.");
         plugin.getProxy().getPlayers().forEach(p -> p.sendMessage(message));
