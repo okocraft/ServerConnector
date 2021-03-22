@@ -66,6 +66,13 @@
             <version>3.1.0</version>
             <scope>compile</scope>
         </dependency>
+        <!-- MCCommand https://github.com/Siroshun09/MCCommand/ -->
+        <dependency>
+            <groupId>com.github.siroshun09.mccommand</groupId>
+            <artifactId>bungee</artifactId>
+            <version>2.2.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
