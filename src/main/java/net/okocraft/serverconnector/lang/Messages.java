@@ -69,7 +69,7 @@ public final class Messages {
                     PREFIX.toBuilder()
                             .append(
                                     translatable()
-                                            .key("serverconnector.proxy.left")
+                                            .key("serverconnector.proxy.leave")
                                             .args(text(playerName, AQUA))
                                             .color(GRAY)
                                             .build()
