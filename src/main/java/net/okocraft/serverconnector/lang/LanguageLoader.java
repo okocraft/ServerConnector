@@ -33,7 +33,7 @@ public final class LanguageLoader {
 
         FileUtils.createDirectoriesIfNotExists(directory);
 
-        REGISTRY = TranslationRegistry.create(Key.key("armorstandeditor", "language"));
+        REGISTRY = TranslationRegistry.create(Key.key("serverconnector", "language"));
 
         saveDefaultIfNotExists(plugin, directory);
 
