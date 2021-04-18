@@ -1,10 +1,11 @@
 package net.okocraft.serverconnector.command;
 
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.okocraft.serverconnector.lang.Messages;
+import net.okocraft.serverconnector.util.AudienceUtil;
 
 public class SlashServerCommand extends Command {
 
@@ -17,29 +18,32 @@ public class SlashServerCommand extends Command {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        var audience = AudienceUtil.sender(sender);
+
         if (!(sender instanceof ProxiedPlayer)) {
-            sender.sendMessage(new TextComponent("Only player."));
+            audience.sendMessage(Messages.SLASH_SERVER_ONLY_PLAYER);
             return;
         }
 
         if (!sender.hasPermission(getPermission())) {
-            sender.sendMessage(new TextComponent("No permission: " + getPermission()));
+            audience.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(getPermission()));
             return;
         }
 
         var player = (ProxiedPlayer) sender;
+        var currentServerName = player.getServer().getInfo().getName();
 
-        if (player.getServer().getInfo().getName().equalsIgnoreCase(server.getName())) {
-            sender.sendMessage(new TextComponent("Already connected."));
+        if (currentServerName.equalsIgnoreCase(server.getName())) {
+            audience.sendMessage(Messages.SLASH_SERVER_ALREADY_CONNECTED);
             return;
         }
 
         if (!server.canAccess(player)) {
-            sender.sendMessage(new TextComponent("Could not connect to " + server.getName()));
+            audience.sendMessage(Messages.SLASH_SERVER_COULD_NOT_CONNECT.apply(server.getName()));
             return;
         }
 
-        sender.sendMessage(new TextComponent("Connecting to " + server.getName()));
+        audience.sendMessage(Messages.SLASH_SERVER_CONNECTING.apply(server.getName()));
         player.connect(server);
     }
 }

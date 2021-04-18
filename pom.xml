@@ -6,7 +6,7 @@
 
     <groupId>net.okocraft.serverconnector</groupId>
     <artifactId>serverconnector</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>ServerConnector</name>
@@ -46,8 +46,8 @@
 
     <repositories>
         <repository>
-            <id>bungeecord-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>sonatype-oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
     </repositories>
 
@@ -59,11 +59,38 @@
             <version>1.16-R0.4</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Adventure-Platform https://github.com/KyoriPowered/adventure-platform -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-platform-bungeecord</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Adventure-Text-Serializer-Plain https://github.com/KyoriPowered/adventure -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-plain</artifactId>
+            <version>4.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId>
+            <version>4.7.0</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- ConfigAPI https://github.com/Siroshun09/ConfigAPI/ -->
         <dependency>
             <groupId>com.github.siroshun09.configapi</groupId>
             <artifactId>yaml</artifactId>
             <version>3.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- MCCommand https://github.com/Siroshun09/MCCommand/ -->
+        <dependency>
+            <groupId>com.github.siroshun09.mccommand</groupId>
+            <artifactId>bungee</artifactId>
+            <version>2.2.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -123,12 +150,24 @@
                     <minimizeJar>true</minimizeJar>
                     <relocations>
                         <relocation>
-                            <pattern>com.github.siroshun09.configapi</pattern>
-                            <shadedPattern>${project.groupId}.lib.configapi</shadedPattern>
+                            <pattern>com.github.siroshun09</pattern>
+                            <shadedPattern>${project.groupId}.lib</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.yaml.snakeyaml</pattern>
                             <shadedPattern>${project.groupId}.lib.yaml</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.intellij</pattern>
+                            <shadedPattern>${project.groupId}.lib.intellij</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.checkerframework</pattern>
+                            <shadedPattern>${project.groupId}.lib.checkerframework</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.jetbrains</pattern>
+                            <shadedPattern>${project.groupId}.lib.jetbrains</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

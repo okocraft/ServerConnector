@@ -1,0 +1,16 @@
+serverconnector:
+  prefix: ""
+  server:
+    no-permission: "サーバー {0} に接続する権限がありません: {1}"
+    kick: "サーバー {0} からキックされました: {1}"
+    switch: "{0} はサーバー {1} に移動しました。"
+  proxy:
+    join: "{0} がサーバーにログインしました。"
+    leave: "{0} がサーバーからログアウトしました。"
+  command:
+    slash-server:
+      only-player: "このコマンドはプレイヤーのみ実行できます。"
+      no-permission: "このコマンドを実行する権限がありません: {0}"
+      already-connected: "すでに同じサーバーに接続しています。"
+      could-not-connect: "{0} に接続することができません。"
+      connecting: "{0} に接続しています..."

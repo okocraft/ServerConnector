@@ -3,11 +3,13 @@ package net.okocraft.serverconnector;
 import com.github.siroshun09.configapi.yaml.YamlConfiguration;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
+import net.okocraft.serverconnector.lang.LanguageLoader;
 import net.okocraft.serverconnector.listener.PlayerListener;
 import net.okocraft.serverconnector.listener.ServerListener;
+import net.okocraft.serverconnector.util.AudienceUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.logging.Level;
 
 public final class ServerConnectorPlugin extends Plugin {
 
@@ -18,12 +20,20 @@ public final class ServerConnectorPlugin extends Plugin {
         try {
             config.load();
         } catch (IOException e) {
-            getLogger().log(Level.SEVERE, "Could not load config.yml", e);
+            throw new IllegalStateException("Failed to load config.yml", e);
+        }
+
+        try {
+            LanguageLoader.load(this);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load languages", e);
         }
     }
 
     @Override
     public void onEnable() {
+        AudienceUtil.init(this);
+
         enablePlayerListener();
         enableServerListener();
         enableSlashServer();
@@ -34,7 +44,7 @@ public final class ServerConnectorPlugin extends Plugin {
         getProxy().getPluginManager().unregisterListeners(this);
     }
 
-    public YamlConfiguration getConfig() {
+    public @NotNull YamlConfiguration getConfig() {
         return config;
     }
 

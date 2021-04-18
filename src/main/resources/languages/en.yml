@@ -1,0 +1,16 @@
+serverconnector:
+  prefix: ""
+  server:
+    no-permission: "You don't have the permission to connect the server {0}: {1}"
+    kick: "You have been kicked from server {0}: {1}"
+    switch: "{0} has been moved to server {1}."
+  proxy:
+    join: "{0} joined the proxy."
+    leave: "{0} left the proxy."
+  command:
+    slash-server:
+      only-player: "This command can only be executed by the player."
+      no-permission: "You don't have the permission to execute this command: {0}"
+      already-connected: "You are already connected to the same server."
+      could-not-connect: "Could not connect to the server {0}."
+      connecting: "Connecting to server {0}..."
