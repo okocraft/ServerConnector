@@ -6,7 +6,7 @@
 
     <groupId>net.okocraft.serverconnector</groupId>
     <artifactId>serverconnector</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>ServerConnector</name>
@@ -70,6 +70,12 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-plain</artifactId>
+            <version>4.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId>
             <version>4.7.0</version>
             <scope>compile</scope>
         </dependency>
@@ -144,12 +150,24 @@
                     <minimizeJar>true</minimizeJar>
                     <relocations>
                         <relocation>
-                            <pattern>com.github.siroshun09.configapi</pattern>
-                            <shadedPattern>${project.groupId}.lib.configapi</shadedPattern>
+                            <pattern>com.github.siroshun09</pattern>
+                            <shadedPattern>${project.groupId}.lib</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.yaml.snakeyaml</pattern>
                             <shadedPattern>${project.groupId}.lib.yaml</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.intellij</pattern>
+                            <shadedPattern>${project.groupId}.lib.intellij</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.checkerframework</pattern>
+                            <shadedPattern>${project.groupId}.lib.checkerframework</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.jetbrains</pattern>
+                            <shadedPattern>${project.groupId}.lib.jetbrains</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

@@ -34,4 +34,12 @@ public final class AudienceUtil {
             throw new IllegalStateException();
         }
     }
+
+    public static @NotNull Audience all() {
+        if (AUDIENCES != null) {
+            return AUDIENCES.all();
+        } else {
+            throw new IllegalStateException();
+        }
+    }
 }
