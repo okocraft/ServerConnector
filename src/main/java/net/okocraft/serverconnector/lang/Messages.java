@@ -59,6 +59,7 @@ public final class Messages {
                                     translatable()
                                             .key("serverconnector.proxy.join")
                                             .args(text(playerName, AQUA))
+                                            .color(GRAY)
                                             .build()
                             )
                             .build();
@@ -70,6 +71,7 @@ public final class Messages {
                                     translatable()
                                             .key("serverconnector.proxy.left")
                                             .args(text(playerName, AQUA))
+                                            .color(GRAY)
                                             .build()
                             )
                             .build();
