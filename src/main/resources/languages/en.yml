@@ -1,10 +1,11 @@
 serverconnector:
   prefix: ""
   server:
-    no-permission: "You don't have the permission to connect the server {0}: {1}"
+    no-permission: "You don't have the permission to connect to the server {0}: {1}"
     kick: "You have been kicked from server {0}: {1}"
     switch: "{0} has been moved to server {1}."
   proxy:
+    no-permission: "You don't have the permission to connect to the proxy."
     join: "{0} joined the proxy."
     leave: "{0} left the proxy."
   command:

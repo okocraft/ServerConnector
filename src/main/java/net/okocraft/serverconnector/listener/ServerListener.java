@@ -1,5 +1,6 @@
 package net.okocraft.serverconnector.listener;
 
+import com.mojang.brigadier.Message;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.md_5.bungee.api.event.ServerConnectEvent;
@@ -21,15 +22,13 @@ public class ServerListener implements Listener {
 
         if (!player.hasPermission(permission)) {
             var audience = AudienceUtil.player(player);
-            var message = Messages.NO_PERMISSION_TO_CONNECT.apply(serverName, permission);
-
             e.setCancelled(true);
 
             if (player.getServer() != null) {
-                audience.sendMessage(message);
+                audience.sendMessage( Messages.NO_PERMISSION_TO_CONNECT_TO_SERVER.apply(serverName, permission));
             } else {
                 var locale = Objects.requireNonNullElse(player.getLocale(), Locale.ENGLISH);
-                var translated = GlobalTranslator.render(message, locale);
+                var translated = GlobalTranslator.render(Messages.NO_PERMISSION_TO_CONNECT_TO_PROXY, locale);
                 player.disconnect(BungeeComponentSerializer.get().serialize(translated));
             }
         }

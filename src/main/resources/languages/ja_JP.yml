@@ -5,6 +5,7 @@ serverconnector:
     kick: "サーバー {0} からキックされました: {1}"
     switch: "{0} はサーバー {1} に移動しました。"
   proxy:
+    no-permission: "サーバーに接続する権限がありません."
     join: "{0} がサーバーにログインしました。"
     leave: "{0} がサーバーからログアウトしました。"
   command:

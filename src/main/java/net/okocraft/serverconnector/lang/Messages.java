@@ -11,12 +11,13 @@ import static net.kyori.adventure.text.Component.translatable;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 
 public final class Messages {
 
     private static final TranslatableComponent PREFIX = translatable("serverconnector.prefix", GRAY);
 
-    public static final BiFunction<String, String, Component> NO_PERMISSION_TO_CONNECT =
+    public static final BiFunction<String, String, Component> NO_PERMISSION_TO_CONNECT_TO_SERVER =
             (serverName, permission) ->
                     PREFIX.toBuilder()
                             .append(translatable()
@@ -72,6 +73,14 @@ public final class Messages {
                                             .build()
                             )
                             .build();
+
+    public static final Component NO_PERMISSION_TO_CONNECT_TO_PROXY =
+            PREFIX.toBuilder().append(
+                    translatable()
+                            .key("serverconnector.proxy.no-permission")
+                            .color(WHITE)
+                            .build()
+            ).build();
 
     public static final Component SLASH_SERVER_ONLY_PLAYER =
             PREFIX.toBuilder().append(translatable("serverconnector.only-player", RED)).build();
