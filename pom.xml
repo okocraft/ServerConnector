@@ -141,6 +141,10 @@
                             <shadedPattern>${project.groupId}.lib</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>net.kyori</pattern>
+                            <shadedPattern>${project.groupId}.lib.kyori</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>org.yaml.snakeyaml</pattern>
                             <shadedPattern>${project.groupId}.lib.yaml</shadedPattern>
                         </relocation>
