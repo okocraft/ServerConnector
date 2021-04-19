@@ -14,6 +14,7 @@ import java.io.IOException;
 public final class ServerConnectorPlugin extends Plugin {
 
     private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
+    private final LanguageLoader languageLoader = new LanguageLoader(this);
 
     @Override
     public void onLoad() {
@@ -24,7 +25,7 @@ public final class ServerConnectorPlugin extends Plugin {
         }
 
         try {
-            LanguageLoader.load(this);
+            languageLoader.load();
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load languages", e);
         }
