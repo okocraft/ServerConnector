@@ -1,5 +1,6 @@
 package net.okocraft.serverconnector;
 
+import com.github.siroshun09.configapi.common.util.ResourceUtils;
 import com.github.siroshun09.configapi.yaml.YamlConfiguration;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
@@ -19,6 +20,7 @@ public final class ServerConnectorPlugin extends Plugin {
     @Override
     public void onLoad() {
         try {
+            ResourceUtils.copyFromClassLoaderIfNotExists(getClass().getClassLoader(), "config.yml", config.getPath());
             config.load();
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load config.yml", e);
