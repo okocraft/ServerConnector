@@ -2,15 +2,18 @@ package net.okocraft.serverconnector.listener;
 
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
+import net.md_5.bungee.protocol.ProtocolConstants;
 import net.okocraft.serverconnector.ServerConnectorPlugin;
 import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.util.AudienceUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -90,6 +93,17 @@ public class PlayerListener implements Listener {
             var serverName = player.getServer().getInfo().getName();
             var message = Messages.SWITCH_SERVER.apply(playerName, serverName);
             AudienceUtil.all().sendMessage(message);
+        }
+    }
+
+    @EventHandler
+    public void onJoin(@NotNull ServerConnectEvent event) {
+        var player = event.getPlayer();
+
+        if (player.getPendingConnection().getVersion() > ProtocolConstants.MINECRAFT_1_16_4) {
+            var serverName = plugin.getConfig().get(ConfigValues.SNAPSHOT_SERVER);
+            var snapshotServer = plugin.getProxy().getServerInfo(serverName);
+            event.setTarget(snapshotServer);
         }
     }
 }
