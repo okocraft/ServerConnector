@@ -48,6 +48,7 @@ public final class ServerConnectorPlugin extends Plugin {
     @Override
     public void onDisable() {
         getProxy().getPluginManager().unregisterListeners(this);
+        languageLoader.unload();
     }
 
     public @NotNull YamlConfiguration getConfig() {
