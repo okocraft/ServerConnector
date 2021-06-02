@@ -16,8 +16,9 @@ public class ServerListener implements Listener {
     @EventHandler
     public void onConnect(ServerConnectEvent e) {
         var player = e.getPlayer();
-        var serverName = e.getTarget().getName();
-        var permission = "serverconnector.connect." + serverName;
+        var server = e.getTarget();
+        var serverName = server.getName();
+        var permission = server.getPermission();
 
         if (!player.hasPermission(permission)) {
             var audience = AudienceUtil.player(player);
