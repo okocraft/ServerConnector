@@ -71,6 +71,12 @@
             <groupId>com.github.siroshun09.configapi</groupId>
             <artifactId>yaml</artifactId>
             <version>3.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+            </exclusions>
             <scope>compile</scope>
         </dependency>
         <!-- AdventureExtender https://github.com/Siroshun09/AdventureExtender -->
@@ -143,10 +149,6 @@
                         <relocation>
                             <pattern>net.kyori</pattern>
                             <shadedPattern>${project.groupId}.lib.kyori</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.yaml.snakeyaml</pattern>
-                            <shadedPattern>${project.groupId}.lib.yaml</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.intellij</pattern>
