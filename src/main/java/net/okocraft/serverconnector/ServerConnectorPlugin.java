@@ -4,9 +4,11 @@ import com.github.siroshun09.configapi.common.util.ResourceUtils;
 import com.github.siroshun09.configapi.yaml.YamlConfiguration;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
+import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.lang.LanguageLoader;
 import net.okocraft.serverconnector.listener.PlayerListener;
 import net.okocraft.serverconnector.listener.ServerListener;
+import net.okocraft.serverconnector.listener.SnapshotClientListener;
 import net.okocraft.serverconnector.util.AudienceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +42,7 @@ public final class ServerConnectorPlugin extends Plugin {
         enablePlayerListener();
         enableServerListener();
         enableSlashServer();
+        enableSnapshotListenerIfConfigured();
     }
 
     @Override
@@ -65,5 +68,12 @@ public final class ServerConnectorPlugin extends Plugin {
         getProxy().getServers().values().stream()
                 .map(SlashServerCommand::new)
                 .forEach(cmd -> getProxy().getPluginManager().registerCommand(this, cmd));
+    }
+
+    private void enableSnapshotListenerIfConfigured() {
+        if (config.get(ConfigValues.ENABLE_SNAPSHOT_SERVER)) {
+            var snapshotListener = new SnapshotClientListener(this);
+            getProxy().getPluginManager().registerListener(this, snapshotListener);
+        }
     }
 }

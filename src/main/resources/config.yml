@@ -1,2 +1,4 @@
 server-to-send-when-kicked: "hub"
-snapshot-server: "snapshot"
+snapshot:
+  enable: false
+  server-name: "snapshot"
