@@ -26,7 +26,7 @@ public final class LanguageLoader extends YamlTranslationLoader {
 
     @Override
     protected void saveDefaultIfNotExists() throws IOException {
-        var defaultFileName = Locale.ENGLISH + ".yml";
+        var defaultFileName = getDefaultLocale() + ".yml";
         var defaultFile = getDirectory().resolve(defaultFileName);
 
         ResourceUtils.copyFromClassLoaderIfNotExists(
