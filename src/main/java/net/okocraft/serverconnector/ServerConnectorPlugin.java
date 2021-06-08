@@ -42,7 +42,6 @@ public final class ServerConnectorPlugin extends Plugin {
         enablePlayerListener();
         enableServerListener();
         enableSlashServer();
-        enableSnapshotListenerIfConfigured();
     }
 
     @Override
