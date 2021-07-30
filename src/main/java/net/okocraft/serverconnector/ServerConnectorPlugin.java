@@ -60,7 +60,7 @@ public final class ServerConnectorPlugin extends Plugin {
     }
 
     private void enableServerListener() {
-        var serverListener = new ServerListener();
+        var serverListener = new ServerListener(this);
         getProxy().getPluginManager().registerListener(this, serverListener);
     }
 

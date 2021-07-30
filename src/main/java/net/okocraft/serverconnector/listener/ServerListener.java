@@ -2,16 +2,26 @@ package net.okocraft.serverconnector.listener;
 
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.okocraft.serverconnector.ServerConnectorPlugin;
+import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.util.AudienceUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 import java.util.Objects;
 
 public class ServerListener implements Listener {
+
+    private final ServerConnectorPlugin plugin;
+
+    public ServerListener(@NotNull ServerConnectorPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler
     public void onConnect(ServerConnectEvent e) {
@@ -20,6 +30,19 @@ public class ServerListener implements Listener {
         var serverName = server.getName();
         var permission = server.getPermission();
 
+        // If the player do not have the permission, switch to trying to connect to the fallback server.
+        if (!player.hasPermission(permission)) {
+            var fallbackServerName = plugin.getConfig().get(ConfigValues.SERVER_TO_SEND);
+            var fallbackServer = ProxyServer.getInstance().getServerInfo(serverName);
+
+            if (!serverName.equals(fallbackServerName) && fallbackServer != null) {
+                e.setTarget(fallbackServer);
+                serverName = fallbackServerName;
+                permission = fallbackServer.getPermission();
+            }
+        }
+
+        // Check the permissions of the server.
         if (!player.hasPermission(permission)) {
             var audience = AudienceUtil.player(player);
             e.setCancelled(true);
