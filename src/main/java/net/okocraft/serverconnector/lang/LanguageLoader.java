@@ -1,7 +1,7 @@
 package net.okocraft.serverconnector.lang;
 
 import com.github.siroshun09.adventureextender.loader.translation.YamlTranslationLoader;
-import com.github.siroshun09.configapi.common.util.ResourceUtils;
+import com.github.siroshun09.configapi.api.util.ResourceUtils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.TranslationRegistry;
 import net.okocraft.serverconnector.ServerConnectorPlugin;

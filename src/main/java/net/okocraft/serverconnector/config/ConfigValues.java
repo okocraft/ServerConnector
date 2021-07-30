@@ -1,6 +1,6 @@
 package net.okocraft.serverconnector.config;
 
-import com.github.siroshun09.configapi.common.value.ConfigValue;
+import com.github.siroshun09.configapi.api.value.ConfigValue;
 
 public  final class ConfigValues {
 
