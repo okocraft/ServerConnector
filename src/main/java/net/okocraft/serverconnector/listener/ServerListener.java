@@ -33,7 +33,7 @@ public class ServerListener implements Listener {
         // If the player do not have the permission, switch to trying to connect to the fallback server.
         if (!player.hasPermission(permission)) {
             var fallbackServerName = plugin.getConfig().get(ConfigValues.SERVER_TO_SEND);
-            var fallbackServer = ProxyServer.getInstance().getServerInfo(serverName);
+            var fallbackServer = ProxyServer.getInstance().getServerInfo(fallbackServerName);
 
             if (!serverName.equals(fallbackServerName) && fallbackServer != null) {
                 e.setTarget(fallbackServer);
