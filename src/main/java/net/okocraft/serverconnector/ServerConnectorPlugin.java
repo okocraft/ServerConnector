@@ -51,6 +51,7 @@ public final class ServerConnectorPlugin extends Plugin {
     @Override
     public void onDisable() {
         getProxy().getPluginManager().unregisterListeners(this);
+        getProxy().getPluginManager().unregisterCommands(this);
         translationDirectory.unload();
     }
 
