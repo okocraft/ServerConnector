@@ -3,6 +3,7 @@ package net.okocraft.serverconnector.listener;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.event.ProxyReloadEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -58,5 +59,11 @@ public class ServerListener implements Listener {
                 player.disconnect(BungeeComponentSerializer.get().serialize(translated));
             }
         }
+    }
+
+    @EventHandler
+    public void onReload(ProxyReloadEvent e) {
+        plugin.getProxy().getPluginManager().unregisterCommands(plugin);
+        plugin.enableSlashServer();
     }
 }

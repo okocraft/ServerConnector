@@ -69,7 +69,7 @@ public final class ServerConnectorPlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, serverListener);
     }
 
-    private void enableSlashServer() {
+    public void enableSlashServer() {
         getProxy().getServers().values().stream()
                 .map(SlashServerCommand::new)
                 .forEach(cmd -> getProxy().getPluginManager().registerCommand(this, cmd));
