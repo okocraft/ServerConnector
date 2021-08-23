@@ -20,7 +20,7 @@ public final class ServerConnectorPlugin extends Plugin {
 
     private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
     private final TranslationDirectory translationDirectory =
-            new TranslationDirectory(getDataFolder().toPath().resolve("languages"), Key.key("serverconnector", "language"));
+            TranslationDirectory.create(getDataFolder().toPath().resolve("languages"), Key.key("serverconnector", "language"));
 
     @Override
     public void onLoad() {
