@@ -12,6 +12,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
 import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
+import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
 
 public final class Messages {
 
@@ -72,6 +73,24 @@ public final class Messages {
                                             .key("serverconnector.proxy.leave")
                                             .args(text(playerName, AQUA))
                                             .color(GRAY)
+                                            .build()
+                            )
+                            .build();
+
+    public static final Function<String, Component> FIRST_JOIN_MESSAGE =
+            playerName ->
+                    PREFIX.toBuilder()
+                            .append(
+                                    translatable()
+                                            .key("serverconnector.proxy.first-join.part-1")
+                                            .args(text(playerName, AQUA))
+                                            .color(GRAY)
+                                            .build()
+                            )
+                            .append(
+                                    translatable()
+                                            .key("serverconnector.proxy.first-join.part-2")
+                                            .color(YELLOW)
                                             .build()
                             )
                             .build();

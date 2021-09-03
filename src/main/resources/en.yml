@@ -8,6 +8,10 @@ serverconnector:
     no-permission: "You don't have the permission to connect to the proxy."
     join: "{0} joined the proxy."
     leave: "{0} left the proxy."
+    first-join:
+      # the layout of the final message to be sent: "<pert-1> <pert-2>"
+      part-1: "{0} is logged in for the first time."
+      part-2: "Welcome to the server!"
   command:
     slash-server:
       only-player: "This command can only be executed by the player."

@@ -11,6 +11,7 @@ import net.okocraft.serverconnector.ServerConnectorPlugin;
 import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.util.AudienceUtil;
+import net.okocraft.serverconnector.util.FirstJoinPlayerHolder;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -82,7 +83,12 @@ public class PlayerListener implements Listener {
             var message = Messages.JOIN_PROXY.apply(playerName);
             plugin.getProxy().getScheduler().schedule(
                     plugin,
-                    () -> AudienceUtil.all().sendMessage(message),
+                    () -> {
+                        AudienceUtil.all().sendMessage(message);
+                        if (FirstJoinPlayerHolder.remove(player.getUniqueId())) {
+                            AudienceUtil.all().sendMessage(Messages.FIRST_JOIN_MESSAGE.apply(playerName));
+                        }
+                    },
                     2,
                     TimeUnit.SECONDS
             );

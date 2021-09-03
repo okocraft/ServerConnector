@@ -7,6 +7,7 @@ import net.kyori.adventure.key.Key;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
 import net.okocraft.serverconnector.config.ConfigValues;
+import net.okocraft.serverconnector.listener.FirstJoinListener;
 import net.okocraft.serverconnector.listener.PlayerListener;
 import net.okocraft.serverconnector.listener.ServerListener;
 import net.okocraft.serverconnector.listener.SnapshotClientListener;
@@ -21,6 +22,9 @@ public final class ServerConnectorPlugin extends Plugin {
     private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
     private final TranslationDirectory translationDirectory =
             TranslationDirectory.create(getDataFolder().toPath().resolve("languages"), Key.key("serverconnector", "language"));
+
+
+    private FirstJoinListener firstJoinListener;
 
     @Override
     public void onLoad() {
@@ -46,10 +50,15 @@ public final class ServerConnectorPlugin extends Plugin {
         enablePlayerListener();
         enableServerListener();
         enableSlashServer();
+        enableFirstJoinDetector();
     }
 
     @Override
     public void onDisable() {
+        if (firstJoinListener != null) {
+            firstJoinListener.unsubscribe();
+        }
+
         getProxy().getPluginManager().unregisterListeners(this);
         getProxy().getPluginManager().unregisterCommands(this);
         translationDirectory.unload();
@@ -73,6 +82,12 @@ public final class ServerConnectorPlugin extends Plugin {
         getProxy().getServers().values().stream()
                 .map(SlashServerCommand::new)
                 .forEach(cmd -> getProxy().getPluginManager().registerCommand(this, cmd));
+    }
+
+    private void enableFirstJoinDetector() {
+        if (getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
+            firstJoinListener = new FirstJoinListener(this);
+        }
     }
 
     private void enableSnapshotListenerIfConfigured() {

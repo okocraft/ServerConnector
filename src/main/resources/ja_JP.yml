@@ -8,6 +8,10 @@ serverconnector:
     no-permission: "サーバーに接続する権限がありません."
     join: "{0} がサーバーにログインしました。"
     leave: "{0} がサーバーからログアウトしました。"
+    first-join:
+      # 最終的に送信されるメッセージのレイアウト: "<pert-1> <pert-2>"
+      part-1: "{0} が初めてログインしました。"
+      part-2: "ようこそサーバーへ!"
   command:
     slash-server:
       only-player: "このコマンドはプレイヤーのみ実行できます。"
