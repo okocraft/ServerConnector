@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 
 public final class ServerConnectorPlugin extends Plugin {
 
@@ -38,6 +39,7 @@ public final class ServerConnectorPlugin extends Plugin {
         try {
             translationDirectory.createDirectoryIfNotExists(this::saveDefaultLanguages);
             translationDirectory.load();
+            translationDirectory.getRegistry().defaultLocale(Locale.ENGLISH);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load languages", e);
         }
