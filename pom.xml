@@ -59,6 +59,12 @@
             <version>1.17-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.3</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- Adventure-Platform https://github.com/KyoriPowered/adventure-platform -->
         <dependency>
             <groupId>net.kyori</groupId>
