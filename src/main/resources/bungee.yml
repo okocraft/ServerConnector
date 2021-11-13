@@ -2,4 +2,4 @@ name: ServerConnector
 main: net.okocraft.serverconnector.ServerConnectorPlugin
 version: ${project.version}
 author: Siroshun09
-softdepends: [LuckPerms]
+softDepends: [LuckPerms]
