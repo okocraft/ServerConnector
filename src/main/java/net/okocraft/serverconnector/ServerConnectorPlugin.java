@@ -24,7 +24,6 @@ public final class ServerConnectorPlugin extends Plugin {
     private final TranslationDirectory translationDirectory =
             TranslationDirectory.create(getDataFolder().toPath().resolve("languages"), Key.key("serverconnector", "language"));
 
-
     private FirstJoinListener firstJoinListener;
 
     @Override
@@ -53,6 +52,7 @@ public final class ServerConnectorPlugin extends Plugin {
         enableServerListener();
         enableSlashServer();
         enableFirstJoinDetector();
+        enableSnapshotListenerIfConfigured();
     }
 
     @Override

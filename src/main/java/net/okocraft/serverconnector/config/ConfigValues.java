@@ -9,4 +9,6 @@ public  final class ConfigValues {
     public static final ConfigValue<Boolean> ENABLE_SNAPSHOT_SERVER = c -> c.getBoolean("snapshot.enable");
 
     public static final ConfigValue<String> SNAPSHOT_SERVER = c -> c.getString("snapshot.server-name", "snapshot");
+
+    public static final ConfigValue<Integer> SNAPSHOT_PROTOCOL_VERSION = c -> c.getInteger("snapshot.protocol-version");
 }

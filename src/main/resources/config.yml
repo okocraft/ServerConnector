@@ -2,3 +2,4 @@ server-to-send-when-kicked: "hub"
 snapshot:
   enable: false
   server-name: "snapshot"
+  protocol-version: 1073741873 # 1.18-pre1
