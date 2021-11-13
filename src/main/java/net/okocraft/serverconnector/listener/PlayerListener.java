@@ -43,7 +43,8 @@ public class PlayerListener implements Listener {
 
         if (sendTo == null) {
             joinedPlayer.remove(player.getUniqueId());
-            throw new IllegalStateException("Unknown server: " + serverName);
+            plugin.getLogger().warning("Unknown server: " + serverName);
+            return;
         }
 
         if (sendTo.getName().equals(from.getName())) {
