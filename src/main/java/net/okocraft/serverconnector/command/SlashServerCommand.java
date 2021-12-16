@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 public class SlashServerCommand extends Command implements TabExecutor {
 
+    private static final String GLOBAL_OTHER_PLAYER_PERMISSION = "serverconnector.slashserver.other-players";
+
     private final ServerInfo server;
 
     public SlashServerCommand(ServerInfo serverInfo) {
@@ -41,7 +43,7 @@ public class SlashServerCommand extends Command implements TabExecutor {
 
         if (0 < args.length && !sender.getName().equalsIgnoreCase(args[0])) {
             var permission = getPermission() + ".other";
-            if (!sender.hasPermission(permission)) {
+            if (!sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) && !sender.hasPermission(permission)) {
                 audience.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(permission));
                 return;
             }
@@ -82,7 +84,8 @@ public class SlashServerCommand extends Command implements TabExecutor {
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1 && sender.hasPermission(getPermission() + ".other")) {
+        if (args.length == 1 &&
+                (sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) || sender.hasPermission(getPermission() + ".other"))) {
             var filter = args[0].toLowerCase(Locale.ENGLISH);
             return ProxyServer.getInstance()
                     .getPlayers()
