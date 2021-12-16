@@ -1,7 +1,11 @@
 package net.okocraft.serverconnector.lang;
 
+import com.github.siroshun09.translationloader.argument.DoubleArgument;
+import com.github.siroshun09.translationloader.argument.SingleArgument;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -142,6 +146,26 @@ public final class Messages {
                                             .build()
                             )
                             .build();
+
+    public static final DoubleArgument<ProxiedPlayer, String> SLASH_SERVER_CONNECTING_OTHER =
+            (player, serverName) ->
+                    PREFIX.append(
+                            translatable()
+                                    .key("serverconnector.command.slash-server.connecting-other")
+                                    .args(text(player.getName(), AQUA), text(serverName, AQUA))
+                                    .color(GRAY)
+                                    .build()
+                    );
+
+    public static final SingleArgument<String> SLASH_SERVER_PLAYER_NOT_FOUND =
+            playerName ->
+                    PREFIX.append(
+                            translatable()
+                                    .key("serverconnector.command.slash-server.player-not-found")
+                                    .args(text(playerName, AQUA))
+                                    .color(GRAY)
+                                    .build()
+                    );
 
     private Messages() {
         throw new UnsupportedOperationException();
