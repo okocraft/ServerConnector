@@ -19,3 +19,5 @@ serverconnector:
       already-connected: "You are already connected to the same server."
       could-not-connect: "Could not connect to the server {0}."
       connecting: "Connecting to server {0}..."
+      connecting-other: "Connecting {0} to {1}..."
+      player-not-found: "The player {0} could not be found."
