@@ -22,7 +22,12 @@ public final class ServerConnectorPlugin extends Plugin {
 
     private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
     private final TranslationDirectory translationDirectory =
-            TranslationDirectory.create(getDataFolder().toPath().resolve("languages"), Key.key("serverconnector", "language"));
+            TranslationDirectory.newBuilder()
+                    .setDirectory(getDataFolder().toPath().resolve("languages"))
+                    .setKey(Key.key("serverconnector", "language"))
+                    .setDefaultLocale(Locale.ENGLISH)
+                    .onDirectoryCreated(this::saveDefaultLanguages)
+                    .build();
 
     private FirstJoinListener firstJoinListener;
 
@@ -36,9 +41,7 @@ public final class ServerConnectorPlugin extends Plugin {
         }
 
         try {
-            translationDirectory.createDirectoryIfNotExists(this::saveDefaultLanguages);
             translationDirectory.load();
-            translationDirectory.getRegistry().defaultLocale(Locale.ENGLISH);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load languages", e);
         }
@@ -101,6 +104,7 @@ public final class ServerConnectorPlugin extends Plugin {
 
     private void saveDefaultLanguages(@NotNull Path directory) throws IOException {
         var jarPath = getFile().toPath();
+
         var defaultFileName = "en.yml";
         var defaultFile = directory.resolve(defaultFileName);
 
