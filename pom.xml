@@ -62,7 +62,7 @@
         <dependency>
             <groupId>net.luckperms</groupId>
             <artifactId>api</artifactId>
-            <version>5.3</version>
+            <version>5.4</version>
             <scope>provided</scope>
         </dependency>
         <!-- Adventure-Platform https://github.com/KyoriPowered/adventure-platform -->
