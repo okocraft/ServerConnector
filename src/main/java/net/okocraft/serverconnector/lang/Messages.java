@@ -4,7 +4,6 @@ import com.github.siroshun09.translationloader.argument.DoubleArgument;
 import com.github.siroshun09.translationloader.argument.SingleArgument;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.function.BiFunction;
