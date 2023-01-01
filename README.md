@@ -1,7 +1,7 @@
 # ServerConnector
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/okocraft/ServerConnector)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/okocraft/ServerConnector/Java%20CI)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/okocraft/ServerConnector/maven.yml?branch=master)
 ![GitHub](https://img.shields.io/github/license/okocraft/ServerConnector)
 
 ## Features
