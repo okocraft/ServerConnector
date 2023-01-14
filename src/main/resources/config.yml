@@ -4,6 +4,9 @@ message-sending-setting:
   leave: true
   switch: true
   first-join: true # Requires LuckPerms
+server-permission:
+  enable: true
+  hub: "bungeecord.server.hub" # servername: "<permission>" to use a custom permission node. Default is `bungeecord.server.<servername>`.
 snapshot:
   enable: false
   server-name: "snapshot"

@@ -2,7 +2,7 @@ package net.okocraft.serverconnector.listener;
 
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
@@ -15,6 +15,7 @@ import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.util.AudienceUtil;
 import net.okocraft.serverconnector.util.FirstJoinPlayerHolder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -34,10 +35,14 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onConnect(ServerConnectEvent e) {
+        if (!plugin.getConfig().get(ConfigValues.SERVER_PERMISSION_ENABLE)) {
+            return;
+        }
+
         var player = e.getPlayer();
         var server = e.getTarget();
         var serverName = server.getName();
-        var permission = server.getPermission();
+        var permission = getServerPermission(server);
 
         // If the player do not have the permission, switch to trying to connect to the fallback server.
         //
@@ -45,12 +50,12 @@ public class PlayerListener implements Listener {
         // and are not connected to any server.
         if (player.getServer() == null && !player.hasPermission(permission)) {
             var fallbackServerName = plugin.getConfig().get(ConfigValues.SERVER_TO_SEND);
-            var fallbackServer = ProxyServer.getInstance().getServerInfo(fallbackServerName);
+            var fallbackServer = plugin.getProxy().getServerInfo(fallbackServerName);
 
             if (!serverName.equals(fallbackServerName) && fallbackServer != null) {
                 e.setTarget(fallbackServer);
                 serverName = fallbackServerName;
-                permission = fallbackServer.getPermission();
+                permission = getServerPermission(fallbackServer);
             }
         }
 
@@ -58,12 +63,13 @@ public class PlayerListener implements Listener {
         if (!player.hasPermission(permission)) {
             var audience = AudienceUtil.player(player);
             e.setCancelled(true);
+            var message = Messages.NO_PERMISSION_TO_CONNECT_TO_SERVER.apply(serverName, permission);
 
             if (player.getServer() != null) {
-                audience.sendMessage(Messages.NO_PERMISSION_TO_CONNECT_TO_SERVER.apply(serverName, permission));
+                audience.sendMessage(message);
             } else {
                 var locale = Objects.requireNonNullElse(player.getLocale(), Locale.ENGLISH);
-                var translated = GlobalTranslator.render(Messages.NO_PERMISSION_TO_CONNECT_TO_PROXY, locale);
+                var translated = GlobalTranslator.render(message, locale);
                 player.disconnect(BungeeComponentSerializer.get().serialize(translated));
             }
         }
@@ -140,6 +146,17 @@ public class PlayerListener implements Listener {
 
         if (joinedPlayer.remove(e.getPlayer().getUniqueId()) && plugin.getConfig().get(ConfigValues.SEND_LEAVE_MESSAGE)) {
             AudienceUtil.all().sendMessage(Messages.LEFT_PROXY.apply(player.getName()));
+        }
+    }
+
+    private @NotNull String getServerPermission(@NotNull ServerInfo server) {
+        var serverName = server.getName();
+        var customPermission = plugin.getConfig().get(ConfigValues.SERVER_CUSTOM_PERMISSION.apply(serverName));
+
+        if (customPermission.isEmpty()) {
+            return server.getPermission();
+        } else {
+            return customPermission;
         }
     }
 }
