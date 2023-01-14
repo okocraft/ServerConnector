@@ -1,4 +1,9 @@
 server-to-send-when-kicked: "hub"
+message-sending-setting:
+  join: true
+  leave: true
+  switch: true
+  first-join: true # Requires LuckPerms
 snapshot:
   enable: false
   server-name: "snapshot"

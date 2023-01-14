@@ -99,9 +99,7 @@ public class PlayerListener implements Listener {
 
         var kickedServerName = from.getName();
         var reason = BungeeComponentSerializer.get().deserialize(e.getKickReasonComponent());
-        var message = Messages.KICKED_FROM_SERVER.apply(kickedServerName, reason);
-
-        AudienceUtil.player(player).sendMessage(message);
+        AudienceUtil.player(player).sendMessage(Messages.KICKED_FROM_SERVER.apply(kickedServerName, reason));
     }
 
     @EventHandler(priority = 127)
@@ -117,8 +115,11 @@ public class PlayerListener implements Listener {
                         if (plugin.getProxy().getPlayer(uuid) != null) {
                             joinedPlayer.add(uuid);
 
-                            AudienceUtil.all().sendMessage(Messages.JOIN_PROXY.apply(playerName));
+                            if (plugin.getConfig().get(ConfigValues.SEND_JOIN_MESSAGE)) {
+                                AudienceUtil.all().sendMessage(Messages.JOIN_PROXY.apply(playerName));
+                            }
 
+                            // The reason for not checking the config setting here is that if it is disabled, the user will not be added to the FirstJoinPlayerHolder.
                             if (FirstJoinPlayerHolder.remove(uuid)) {
                                 AudienceUtil.all().sendMessage(Messages.FIRST_JOIN_MESSAGE.apply(playerName));
                             }
@@ -127,10 +128,9 @@ public class PlayerListener implements Listener {
                     2,
                     TimeUnit.SECONDS
             );
-        } else {
+        } else if (plugin.getConfig().get(ConfigValues.SEND_SWITCH_MESSAGE)) {
             var serverName = player.getServer().getInfo().getName();
-            var message = Messages.SWITCH_SERVER.apply(playerName, serverName);
-            AudienceUtil.all().sendMessage(message);
+            AudienceUtil.all().sendMessage(Messages.SWITCH_SERVER.apply(playerName, serverName));
         }
     }
 
@@ -138,11 +138,8 @@ public class PlayerListener implements Listener {
     public void onDisconnect(PlayerDisconnectEvent e) {
         var player = e.getPlayer();
 
-        if (joinedPlayer.contains(player.getUniqueId())) {
-            joinedPlayer.remove(e.getPlayer().getUniqueId());
-
-            var message = Messages.LEFT_PROXY.apply(player.getName());
-            AudienceUtil.all().sendMessage(message);
+        if (joinedPlayer.remove(e.getPlayer().getUniqueId()) && plugin.getConfig().get(ConfigValues.SEND_LEAVE_MESSAGE)) {
+            AudienceUtil.all().sendMessage(Messages.LEFT_PROXY.apply(player.getName()));
         }
     }
 }

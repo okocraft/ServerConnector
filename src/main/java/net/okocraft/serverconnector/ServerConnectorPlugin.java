@@ -90,7 +90,7 @@ public final class ServerConnectorPlugin extends Plugin {
     }
 
     private void enableFirstJoinDetector() {
-        if (getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
+        if (getProxy().getPluginManager().getPlugin("LuckPerms") != null && config.get(ConfigValues.SEND_FIRST_JOIN_MESSAGE)) {
             firstJoinListener = new FirstJoinListener(this);
         }
     }
