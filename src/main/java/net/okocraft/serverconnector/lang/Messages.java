@@ -14,7 +14,6 @@ import static net.kyori.adventure.text.Component.translatable;
 import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
 import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
 import static net.kyori.adventure.text.format.NamedTextColor.RED;
-import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
 import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
 
 public final class Messages {
@@ -102,7 +101,7 @@ public final class Messages {
             PREFIX.toBuilder().append(
                     translatable()
                             .key("serverconnector.proxy.no-permission")
-                            .color(WHITE)
+                            .color(RED)
                             .build()
             ).build();
 
