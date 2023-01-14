@@ -4,6 +4,7 @@ import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
@@ -31,6 +32,21 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(ServerConnectorPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onLogin(@NotNull PostLoginEvent event) {
+        if (!plugin.getConfig().get(ConfigValues.SERVER_PERMISSION_ENABLE)) {
+            return;
+        }
+
+        var player = event.getPlayer();
+
+        if (!player.hasPermission(plugin.getConfig().get(ConfigValues.PROXY_PERMISSION))) {
+            var locale = Objects.requireNonNullElse(player.getLocale(), Locale.ENGLISH);
+            var translated = GlobalTranslator.render(Messages.NO_PERMISSION_TO_CONNECT_TO_PROXY, locale);
+            player.disconnect(BungeeComponentSerializer.get().serialize(translated));
+        }
     }
 
     @EventHandler

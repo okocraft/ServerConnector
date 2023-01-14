@@ -6,6 +6,7 @@ message-sending-setting:
   first-join: true # Requires LuckPerms
 server-permission:
   enable: true
+  proxy: "serverconnector.connect.proxy"
   hub: "bungeecord.server.hub" # servername: "<permission>" to use a custom permission node. Default is `bungeecord.server.<servername>`.
 snapshot:
   enable: false
