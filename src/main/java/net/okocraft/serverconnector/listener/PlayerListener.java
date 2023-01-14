@@ -80,14 +80,18 @@ public class PlayerListener implements Listener {
         var playerName = player.getName();
 
         if (e.getFrom() == null) {
-            joinedPlayer.add(player.getUniqueId());
-            var message = Messages.JOIN_PROXY.apply(playerName);
+            var uuid = player.getUniqueId();
             plugin.getProxy().getScheduler().schedule(
                     plugin,
                     () -> {
-                        AudienceUtil.all().sendMessage(message);
-                        if (FirstJoinPlayerHolder.remove(player.getUniqueId())) {
-                            AudienceUtil.all().sendMessage(Messages.FIRST_JOIN_MESSAGE.apply(playerName));
+                        if (plugin.getProxy().getPlayer(uuid) != null) {
+                            joinedPlayer.add(uuid);
+
+                            AudienceUtil.all().sendMessage(Messages.JOIN_PROXY.apply(playerName));
+
+                            if (FirstJoinPlayerHolder.remove(uuid)) {
+                                AudienceUtil.all().sendMessage(Messages.FIRST_JOIN_MESSAGE.apply(playerName));
+                            }
                         }
                     },
                     2,
