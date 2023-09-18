@@ -1,5 +1,0 @@
-name: ServerConnector
-main: net.okocraft.serverconnector.ServerConnectorPlugin
-version: ${project.version}
-author: Siroshun09
-softDepends: [LuckPerms]

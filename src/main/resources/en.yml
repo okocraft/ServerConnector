@@ -17,7 +17,6 @@ serverconnector:
       only-player: "This command can only be executed by the player."
       no-permission: "You don''t have the permission to execute this command: {0}"
       already-connected: "You are already connected to the same server."
-      could-not-connect: "Could not connect to the server {0}."
       connecting: "Connecting to server {0}..."
       connecting-other: "Connecting {0} to {1}..."
       player-not-found: "The player {0} could not be found."

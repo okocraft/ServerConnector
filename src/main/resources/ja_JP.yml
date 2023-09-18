@@ -17,7 +17,6 @@ serverconnector:
       only-player: "このコマンドはプレイヤーのみ実行できます。"
       no-permission: "このコマンドを実行する権限がありません: {0}"
       already-connected: "すでに同じサーバーに接続しています。"
-      could-not-connect: "{0} に接続することができません。"
       connecting: "{0} に接続しています..."
       connecting-other: "{0} を {1} に接続させています..."
       player-not-found: "プレイヤー {0} は見つかりませんでした。"

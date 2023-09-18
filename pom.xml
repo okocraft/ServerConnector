@@ -11,7 +11,7 @@
 
     <name>ServerConnector</name>
     <url>https://github.com/okocraft/ServerConnector</url>
-    <description>A utility Velocity plugin of connecting servers.</description>
+    <description>A Velocity plugin that provides utility functions related to connecting servers.</description>
 
     <licenses>
         <license>

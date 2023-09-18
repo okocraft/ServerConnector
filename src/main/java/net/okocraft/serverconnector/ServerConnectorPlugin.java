@@ -3,36 +3,56 @@ package net.okocraft.serverconnector;
 import com.github.siroshun09.configapi.api.util.ResourceUtils;
 import com.github.siroshun09.configapi.yaml.YamlConfiguration;
 import com.github.siroshun09.translationloader.directory.TranslationDirectory;
+import com.google.inject.Inject;
+import com.velocitypowered.api.event.PostOrder;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyReloadEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.key.Key;
-import net.md_5.bungee.api.plugin.Plugin;
 import net.okocraft.serverconnector.command.SlashServerCommand;
 import net.okocraft.serverconnector.config.ConfigValues;
 import net.okocraft.serverconnector.listener.FirstJoinListener;
 import net.okocraft.serverconnector.listener.PlayerListener;
-import net.okocraft.serverconnector.listener.ServerListener;
-import net.okocraft.serverconnector.listener.SnapshotClientListener;
-import net.okocraft.serverconnector.util.AudienceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-public final class ServerConnectorPlugin extends Plugin {
+public final class ServerConnectorPlugin {
 
-    private final YamlConfiguration config = YamlConfiguration.create(getDataFolder().toPath().resolve("config.yml"));
-    private final TranslationDirectory translationDirectory =
-            TranslationDirectory.newBuilder()
-                    .setDirectory(getDataFolder().toPath().resolve("languages"))
-                    .setKey(Key.key("serverconnector", "language"))
-                    .setDefaultLocale(Locale.ENGLISH)
-                    .onDirectoryCreated(this::saveDefaultLanguages)
-                    .build();
+    private final ProxyServer proxy;
+    private final Logger logger;
+    private final YamlConfiguration config;
+    private final TranslationDirectory translationDirectory;
+    private final List<SlashServerCommand> registeredSlashServerCommands = new ArrayList<>();
 
     private FirstJoinListener firstJoinListener;
 
-    @Override
-    public void onLoad() {
+    @Inject
+    public ServerConnectorPlugin(@NotNull ProxyServer proxy, @NotNull Logger logger,
+                                 @DataDirectory Path dataDirectory) {
+        this.proxy = proxy;
+        this.logger = logger;
+
+        this.config = YamlConfiguration.create(dataDirectory.resolve("config.yml"));
+        this.translationDirectory =
+                TranslationDirectory.newBuilder()
+                        .setDirectory(dataDirectory.resolve("languages"))
+                        .setKey(Key.key("serverconnector", "language"))
+                        .setDefaultLocale(Locale.ENGLISH)
+                        .onDirectoryCreated(this::saveDefaultLanguages)
+                        .build();
+    }
+
+    @Subscribe(order = PostOrder.FIRST)
+    public void onEnable(ProxyInitializeEvent ignored) {
         try {
             ResourceUtils.copyFromClassLoaderIfNotExists(getClass().getClassLoader(), "config.yml", config.getPath());
             config.load();
@@ -45,28 +65,39 @@ public final class ServerConnectorPlugin extends Plugin {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load languages", e);
         }
-    }
-
-    @Override
-    public void onEnable() {
-        AudienceUtil.init(this);
 
         enablePlayerListener();
-        enableServerListener();
         enableSlashServer();
         enableFirstJoinDetector();
-        enableSnapshotListenerIfConfigured();
     }
 
-    @Override
-    public void onDisable() {
+    @Subscribe(order = PostOrder.LAST)
+    public void onDisable(ProxyShutdownEvent ignored) {
         if (firstJoinListener != null) {
             firstJoinListener.unsubscribe();
         }
 
-        getProxy().getPluginManager().unregisterListeners(this);
-        getProxy().getPluginManager().unregisterCommands(this);
+        getProxy().getEventManager().unregisterListeners(this);
+
+        registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
+
         translationDirectory.unload();
+    }
+
+    @Subscribe
+    public void onReload(ProxyReloadEvent ignored) {
+        if (!registeredSlashServerCommands.isEmpty()) {
+            registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
+            enableSlashServer();
+        }
+    }
+
+    public @NotNull ProxyServer getProxy() {
+        return proxy;
+    }
+
+    public @NotNull Logger getLogger() {
+        return logger;
     }
 
     public @NotNull YamlConfiguration getConfig() {
@@ -75,44 +106,33 @@ public final class ServerConnectorPlugin extends Plugin {
 
     private void enablePlayerListener() {
         var playerListener = new PlayerListener(this);
-        getProxy().getPluginManager().registerListener(this, playerListener);
-    }
-
-    private void enableServerListener() {
-        var serverListener = new ServerListener(this);
-        getProxy().getPluginManager().registerListener(this, serverListener);
+        getProxy().getEventManager().register(this, playerListener);
     }
 
     public void enableSlashServer() {
-        getProxy().getServers().values().stream()
-                .map(SlashServerCommand::new)
-                .forEach(cmd -> getProxy().getPluginManager().registerCommand(this, cmd));
+        getProxy().getAllServers().stream()
+                .map(server -> new SlashServerCommand(this, server))
+                .forEach(command -> {
+                    command.register();
+                    registeredSlashServerCommands.add(command);
+                });
     }
 
     private void enableFirstJoinDetector() {
-        if (getProxy().getPluginManager().getPlugin("LuckPerms") != null && config.get(ConfigValues.SEND_FIRST_JOIN_MESSAGE)) {
+        if (getProxy().getPluginManager().getPlugin("LuckPerms").isPresent() && config.get(ConfigValues.SEND_FIRST_JOIN_MESSAGE)) {
             firstJoinListener = new FirstJoinListener(this);
         }
     }
 
-    private void enableSnapshotListenerIfConfigured() {
-        if (config.get(ConfigValues.ENABLE_SNAPSHOT_SERVER)) {
-            var snapshotListener = new SnapshotClientListener(this);
-            getProxy().getPluginManager().registerListener(this, snapshotListener);
-        }
-    }
-
     private void saveDefaultLanguages(@NotNull Path directory) throws IOException {
-        var jarPath = getFile().toPath();
-
         var defaultFileName = "en.yml";
         var defaultFile = directory.resolve(defaultFileName);
 
-        ResourceUtils.copyFromJarIfNotExists(jarPath, defaultFileName, defaultFile);
+        ResourceUtils.copyFromClassLoaderIfNotExists(getClass().getClassLoader(), defaultFileName, defaultFile);
 
         var japaneseFileName = "ja_JP.yml";
         var japaneseFile = directory.resolve(japaneseFileName);
 
-        ResourceUtils.copyFromJarIfNotExists(jarPath, japaneseFileName, japaneseFile);
+        ResourceUtils.copyFromClassLoaderIfNotExists(getClass().getClassLoader(), japaneseFileName, japaneseFile);
     }
 }

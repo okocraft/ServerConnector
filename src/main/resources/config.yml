@@ -4,11 +4,9 @@ message-sending-setting:
   leave: true
   switch: true
   first-join: true # Requires LuckPerms
-server-permission:
+server-permission: # Set the permission node to empty to disable permission checking on connecting to server
   enable: true
   proxy: "serverconnector.connect.proxy"
-  hub: "bungeecord.server.hub" # servername: "<permission>" to use a custom permission node. Default is `bungeecord.server.<servername>`.
-snapshot:
-  enable: false
-  server-name: "snapshot"
-  protocol-version: 1073741873 # 1.18-pre1
+  default: "serverconnector.connect.%server_name%" # %server_name% will be replaced to the server name
+  # servername: "<permission>" to define a custom permission node.
+  hub: "serverconnector.connect.hub"

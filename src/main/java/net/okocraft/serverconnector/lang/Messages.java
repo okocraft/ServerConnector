@@ -2,9 +2,9 @@ package net.okocraft.serverconnector.lang;
 
 import com.github.siroshun09.translationloader.argument.DoubleArgument;
 import com.github.siroshun09.translationloader.argument.SingleArgument;
+import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -122,17 +122,6 @@ public final class Messages {
     public static final Component SLASH_SERVER_ALREADY_CONNECTED =
             PREFIX.toBuilder().append(translatable("serverconnector.command.slash-server.already-connected", RED)).build();
 
-    public static final Function<String, Component> SLASH_SERVER_COULD_NOT_CONNECT =
-            serverName ->
-                    PREFIX.toBuilder()
-                            .append(
-                                    translatable()
-                                            .key("serverconnector.command.slash-server.could-not-connect")
-                                            .args(text(serverName, AQUA))
-                                            .color(RED)
-                            )
-                            .build();
-
     public static final Function<String, Component> SLASH_SERVER_CONNECTING =
             serverName ->
                     PREFIX.toBuilder()
@@ -145,12 +134,12 @@ public final class Messages {
                             )
                             .build();
 
-    public static final DoubleArgument<ProxiedPlayer, String> SLASH_SERVER_CONNECTING_OTHER =
+    public static final DoubleArgument<Player, String> SLASH_SERVER_CONNECTING_OTHER =
             (player, serverName) ->
                     PREFIX.append(
                             translatable()
                                     .key("serverconnector.command.slash-server.connecting-other")
-                                    .args(text(player.getName(), AQUA), text(serverName, AQUA))
+                                    .args(text(player.getUsername(), AQUA), text(serverName, AQUA))
                                     .color(GRAY)
                                     .build()
                     );

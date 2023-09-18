@@ -1,102 +1,111 @@
 package net.okocraft.serverconnector.command;
 
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.api.plugin.TabExecutor;
+import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.command.SimpleCommand;
+import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.proxy.ServerConnection;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerInfo;
+import net.okocraft.serverconnector.ServerConnectorPlugin;
 import net.okocraft.serverconnector.lang.Messages;
-import net.okocraft.serverconnector.util.AudienceUtil;
 
 import java.util.Collections;
-import java.util.Locale;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SlashServerCommand extends Command implements TabExecutor {
+public class SlashServerCommand implements SimpleCommand {
 
     private static final String GLOBAL_OTHER_PLAYER_PERMISSION = "serverconnector.slashserver.other-players";
 
-    private final ServerInfo server;
+    private final ServerConnectorPlugin plugin;
+    private final RegisteredServer server;
+    private final ServerInfo serverInfo;
+    private final String permission;
+    private final String otherPermission;
+    private final CommandMeta meta;
 
-    public SlashServerCommand(ServerInfo serverInfo) {
-        super(serverInfo.getName(), "serverconnector.slashserver." + serverInfo.getName());
-        server = serverInfo;
+    public SlashServerCommand(ServerConnectorPlugin plugin, RegisteredServer server) {
+        this.plugin = plugin;
+        this.server = server;
+        this.serverInfo = server.getServerInfo();
+        this.permission = "serverconnector.slashserver." + serverInfo.getName();
+        this.otherPermission = permission + ".other";
+        this.meta = plugin.getProxy().getCommandManager().metaBuilder(serverInfo.getName()).plugin(plugin).build();
+    }
+
+    public void register() {
+        plugin.getProxy().getCommandManager().register(meta, this);
+    }
+
+    public void unregister() {
+        plugin.getProxy().getCommandManager().unregister(meta);
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        var audience = AudienceUtil.sender(sender);
+    public void execute(Invocation invocation) {
+        var sender = invocation.source();
 
-        if (!(sender instanceof ProxiedPlayer)) {
-            audience.sendMessage(Messages.SLASH_SERVER_ONLY_PLAYER);
+        if (!sender.hasPermission(permission)) {
+            sender.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(permission));
             return;
         }
 
-        if (!sender.hasPermission(getPermission())) {
-            audience.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(getPermission()));
-            return;
-        }
+        Player target;
+        var args = invocation.arguments();
 
-        ProxiedPlayer player;
-        boolean otherPlayer;
-
-        if (0 < args.length && !sender.getName().equalsIgnoreCase(args[0])) {
-            var permission = getPermission() + ".other";
-            if (!sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) && !sender.hasPermission(permission)) {
-                audience.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(permission));
+        if (0 < args.length) {
+            if (!sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) && !sender.hasPermission(otherPermission)) {
+                sender.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(otherPermission));
                 return;
             }
 
-            player = ProxyServer.getInstance().getPlayer(args[0]);
-            otherPlayer = true;
+            target = plugin.getProxy().getPlayer(args[0]).orElse(null);
 
-            if (player == null) {
-                audience.sendMessage(Messages.SLASH_SERVER_PLAYER_NOT_FOUND.apply(args[0]));
+            if (target == null) {
+                sender.sendMessage(Messages.SLASH_SERVER_PLAYER_NOT_FOUND.apply(args[0]));
                 return;
             }
         } else {
-            player = (ProxiedPlayer) sender;
-            otherPlayer = false;
+            if (sender instanceof Player) {
+                target = (Player) sender;
+            } else {
+                sender.sendMessage(Messages.SLASH_SERVER_ONLY_PLAYER);
+                return;
+            }
         }
 
-        var currentServerName = player.getServer().getInfo().getName();
+        var currentServer = target.getCurrentServer().map(ServerConnection::getServerInfo);
 
-        if (currentServerName.equalsIgnoreCase(server.getName())) {
-            audience.sendMessage(Messages.SLASH_SERVER_ALREADY_CONNECTED);
+        if (serverInfo.equals(currentServer.orElse(null))) {
+            sender.sendMessage(Messages.SLASH_SERVER_ALREADY_CONNECTED);
             return;
         }
 
-        if (!server.canAccess(player)) {
-            audience.sendMessage(Messages.SLASH_SERVER_COULD_NOT_CONNECT.apply(server.getName()));
-            return;
-        }
+        target.createConnectionRequest(server).fireAndForget();
 
-        if (otherPlayer) {
-            AudienceUtil.player(player).sendMessage(Messages.SLASH_SERVER_CONNECTING.apply(server.getName()));
-            audience.sendMessage(Messages.SLASH_SERVER_CONNECTING_OTHER.apply(player, server.getName()));
+        if (sender != target) {
+            target.sendMessage(Messages.SLASH_SERVER_CONNECTING.apply(serverInfo.getName()));
+            sender.sendMessage(Messages.SLASH_SERVER_CONNECTING_OTHER.apply(target, serverInfo.getName()));
         } else {
-            audience.sendMessage(Messages.SLASH_SERVER_CONNECTING.apply(server.getName()));
+            sender.sendMessage(Messages.SLASH_SERVER_CONNECTING.apply(serverInfo.getName()));
         }
-
-        player.connect(server);
     }
 
     @Override
-    public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1 &&
-                (sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) || sender.hasPermission(getPermission() + ".other"))) {
-            var filter = args[0].toLowerCase(Locale.ENGLISH);
-            return ProxyServer.getInstance()
-                    .getPlayers()
-                    .stream()
-                    .map(CommandSender::getName)
-                    .map(name -> name.toLowerCase(Locale.ENGLISH))
-                    .filter(name -> !name.equalsIgnoreCase(sender.getName()))
-                    .filter(name -> name.startsWith(filter))
+    public List<String> suggest(Invocation invocation) {
+        var sender = invocation.source();
+        var args = invocation.arguments();
+
+        if (args.length <= 1 && (sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) || sender.hasPermission(otherPermission))) {
+            return plugin.getProxy().getAllPlayers().stream()
+                    .filter(Predicate.not(sender::equals))
+                    .filter(Predicate.not(player -> serverInfo.equals(player.getCurrentServer().map(ServerConnection::getServerInfo).orElse(null))))
+                    .map(Player::getUsername)
+                    .filter(name -> args.length == 0 || name.regionMatches(true, 0, args[0], 0, args[0].length()))
                     .collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
         }
+
+        return Collections.emptyList();
     }
 }
