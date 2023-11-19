@@ -52,7 +52,6 @@
     </repositories>
 
     <dependencies>
-        <!-- BungeeCord https://github.com/SpigotMC/BungeeCord -->
         <dependency>
             <groupId>com.velocitypowered</groupId>
             <artifactId>velocity-api</artifactId>
@@ -66,13 +65,6 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>maven-snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <build>
         <resources>
