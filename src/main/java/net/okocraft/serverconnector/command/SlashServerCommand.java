@@ -29,25 +29,25 @@ public class SlashServerCommand implements SimpleCommand {
         this.plugin = plugin;
         this.server = server;
         this.serverInfo = server.getServerInfo();
-        this.permission = "serverconnector.slashserver." + serverInfo.getName();
-        this.otherPermission = permission + ".other";
-        this.meta = plugin.getProxy().getCommandManager().metaBuilder(serverInfo.getName()).plugin(plugin).build();
+        this.permission = "serverconnector.slashserver." + this.serverInfo.getName();
+        this.otherPermission = this.permission + ".other";
+        this.meta = plugin.getProxy().getCommandManager().metaBuilder(this.serverInfo.getName()).plugin(plugin).build();
     }
 
     public void register() {
-        plugin.getProxy().getCommandManager().register(meta, this);
+        this.plugin.getProxy().getCommandManager().register(this.meta, this);
     }
 
     public void unregister() {
-        plugin.getProxy().getCommandManager().unregister(meta);
+        this.plugin.getProxy().getCommandManager().unregister(this.meta);
     }
 
     @Override
     public void execute(Invocation invocation) {
         var sender = invocation.source();
 
-        if (!sender.hasPermission(permission)) {
-            sender.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(permission));
+        if (!sender.hasPermission(this.permission)) {
+            sender.sendMessage(Messages.SLASH_SERVER_NO_PERMISSION.apply(this.permission));
             return;
         }
 
@@ -60,7 +60,7 @@ public class SlashServerCommand implements SimpleCommand {
                 return;
             }
 
-            target = plugin.getProxy().getPlayer(args[0]).orElse(null);
+            target = this.plugin.getProxy().getPlayer(args[0]).orElse(null);
 
             if (target == null) {
                 sender.sendMessage(Messages.SLASH_SERVER_PLAYER_NOT_FOUND.apply(args[0]));
