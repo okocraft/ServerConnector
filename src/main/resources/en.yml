@@ -1,22 +1,15 @@
-serverconnector:
-  prefix: ""
-  server:
-    no-permission: "You don''t have the permission to connect to the server {0}: {1}"
-    kick: "You have been kicked from server {0}: {1}"
-    switch: "{0} has been moved to server {1}."
-  proxy:
-    no-permission: "You don''t have the permission to connect to the proxy."
-    join: "{0} joined the proxy."
-    leave: "{0} left the proxy."
-    first-join:
-      # the layout of the final message to be sent: "<pert-1> <pert-2>"
-      part-1: "{0} is logged in for the first time."
-      part-2: "Welcome to the server!"
-  command:
-    slash-server:
-      only-player: "This command can only be executed by the player."
-      no-permission: "You don''t have the permission to execute this command: {0}"
-      already-connected: "You are already connected to the same server."
-      connecting: "Connecting to server {0}..."
-      connecting-other: "Connecting {0} to {1}..."
-      player-not-found: "The player {0} could not be found."
+server:
+  no-permission: "<red>You don't have the permission to connect to the server <aqua><server><red>."
+  kick: "<red>You have been kicked from the server <aqua><server><red>: <reset><reason>"
+  switch: "<aqua><player><gray> has been moved to the server <aqua><server><gray>."
+proxy:
+  no-permission: "<red>You don't have the permission to connect to the proxy."
+  join: "<aqua><player><gray> joined the proxy."
+  leave: "<aqua><player><gray> left the proxy."
+  first-join: "<aqua><player><gray> is logged in for the first time. <yellow>Welcome to the server!"
+slash-server:
+  no-permission: "<red>You don't have the permission to execute this command."
+  already-connected: "<red>You are already connected to the same server."
+  connecting: "<gray>Connecting to the server <aqua><server><gray>..."
+  connecting-other: "<gray>Connecting <aqua><player><gray> to the server <aqua><server><gray>..."
+  player-not-found: "<gray>The player <aqua><arg><gray> could not be found."

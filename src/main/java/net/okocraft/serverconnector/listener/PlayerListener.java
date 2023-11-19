@@ -13,15 +13,13 @@ import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.translation.GlobalTranslator;
 import net.okocraft.serverconnector.ServerConnectorPlugin;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.util.FirstJoinPlayerHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
-import java.util.Objects;
+import java.util.function.Function;
 
 public class PlayerListener {
 
@@ -37,9 +35,8 @@ public class PlayerListener {
             return;
         }
 
-        var locale = Objects.requireNonNullElse(event.getPlayer().getEffectiveLocale(), Locale.ENGLISH);
-        var translated = GlobalTranslator.render(Messages.NO_PERMISSION_TO_CONNECT_TO_PROXY, locale);
-        event.setResult(ResultedEvent.ComponentResult.denied(translated));
+        var locale = event.getPlayer().getEffectiveLocale();
+        event.setResult(ResultedEvent.ComponentResult.denied(this.plugin.getLocalizedMessages(locale).proxyNoPermission));
     }
 
     @Subscribe
@@ -81,8 +78,9 @@ public class PlayerListener {
         var fallback = this.getFallbackServer();
 
         if (fallback != null && !from.equals(fallback)) {
-            var message = Messages.KICKED_FROM_SERVER.apply(from.getServerInfo().getName(), event.getServerKickReason().orElse(Component.empty()));
-            event.setResult(KickedFromServerEvent.RedirectPlayer.create(fallback, message));
+            var messages = this.plugin.getLocalizedMessages(event.getPlayer().getEffectiveLocale());
+            var serverKickMessage = messages.serverKick(from.getServerInfo().getName(), event.getServerKickReason().orElse(Component.empty()));
+            event.setResult(KickedFromServerEvent.RedirectPlayer.create(fallback, serverKickMessage));
         }
     }
 
@@ -90,22 +88,21 @@ public class PlayerListener {
     @Subscribe
     public void onServerConnect(@NotNull ServerPostConnectEvent event) {
         var player = event.getPlayer();
-        var playerName = player.getUsername();
 
         if (event.getPreviousServer() == null) {
             if (this.plugin.getConfig().sendJoinMessage) {
-                this.plugin.getProxy().sendMessage(Messages.JOIN_PROXY.apply(playerName));
+                this.broadcastMessage(messages -> messages.proxyJoin(player));
             }
 
             // The reason for not checking the config setting here is that if it is disabled, the user will not be added to the FirstJoinPlayerHolder.
             if (FirstJoinPlayerHolder.remove(player.getUniqueId())) {
-                this.plugin.getProxy().sendMessage(Messages.FIRST_JOIN_MESSAGE.apply(playerName));
+                this.broadcastMessage(messages -> messages.firstJoin(player));
             }
         } else if (this.plugin.getConfig().sendSwitchMessage) {
             var serverName = player.getCurrentServer().map(ServerConnection::getServerInfo).map(ServerInfo::getName).orElse("");
 
             if (!serverName.isEmpty()) {
-                this.plugin.getProxy().sendMessage(Messages.SWITCH_SERVER.apply(playerName, serverName));
+                this.broadcastMessage(messages -> messages.serverSwitch(player, serverName));
             }
         }
     }
@@ -115,7 +112,7 @@ public class PlayerListener {
         var player = event.getPlayer();
 
         if (event.getLoginStatus() == DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN && this.plugin.getConfig().sendLeaveMessage) {
-            this.plugin.getProxy().sendMessage(Messages.LEFT_PROXY.apply(player.getUsername()));
+            this.broadcastMessage(messages -> messages.proxyLeave(player));
         }
     }
 
@@ -127,7 +124,7 @@ public class PlayerListener {
         if (this.checkPermissionIfNotNull(player, this.getServerPermission(serverName))) {
             return true;
         } else if (sendMessage) {
-            player.sendMessage(Messages.NO_PERMISSION_TO_CONNECT_TO_SERVER.apply(serverName, this.getServerPermission(serverName)));
+            player.sendMessage(this.plugin.getLocalizedMessages(player.getEffectiveLocale()).serverNoPermission(serverName));
         }
 
         return false;
@@ -149,5 +146,11 @@ public class PlayerListener {
 
     private boolean shouldIgnore(@NotNull ResultedEvent<?> event) {
         return !event.getResult().isAllowed() || !this.plugin.getConfig().enableServerPermission;
+    }
+
+    private void broadcastMessage(@NotNull Function<Messages, Component> messageFunction) {
+        for (var player : this.plugin.getProxy().getAllPlayers()) {
+            player.sendMessage(messageFunction.apply(this.plugin.getLocalizedMessages(player.getEffectiveLocale())));
+        }
     }
 }

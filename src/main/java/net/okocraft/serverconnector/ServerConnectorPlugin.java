@@ -1,36 +1,44 @@
 package net.okocraft.serverconnector;
 
-import com.github.siroshun09.translationloader.directory.TranslationDirectory;
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyReloadEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
-import net.kyori.adventure.key.Key;
+import net.kyori.adventure.translation.Translator;
 import net.okocraft.serverconnector.command.SlashServerCommand;
 import net.okocraft.serverconnector.config.ServerConnectorConfig;
+import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.listener.FirstJoinListener;
 import net.okocraft.serverconnector.listener.PlayerListener;
+import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class ServerConnectorPlugin {
 
     private final ProxyServer proxy;
     private final ServerConnectorConfig config = new ServerConnectorConfig();
-    private final TranslationDirectory translationDirectory;
+    private final Map<Locale, Messages> localizedMessagesMap = new HashMap<>();
     private final Path dataDirectory;
     private final List<SlashServerCommand> registeredSlashServerCommands = new ArrayList<>();
 
@@ -40,29 +48,16 @@ public final class ServerConnectorPlugin {
     public ServerConnectorPlugin(@NotNull ProxyServer proxy, @DataDirectory Path dataDirectory) {
         this.proxy = proxy;
         this.dataDirectory = dataDirectory;
-
-        this.translationDirectory =
-                TranslationDirectory.newBuilder()
-                        .setDirectory(dataDirectory.resolve("languages"))
-                        .setKey(Key.key("serverconnector", "language"))
-                        .setDefaultLocale(Locale.ENGLISH)
-                        .onDirectoryCreated(this::saveDefaultLanguages)
-                        .build();
-
     }
 
     @Subscribe(order = PostOrder.FIRST)
     public void onEnable(ProxyInitializeEvent ignored) {
         try {
+            Files.createDirectories(this.dataDirectory);
             this.loadConfig();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to load config.yml", e);
-        }
-
-        try {
-            translationDirectory.load();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to load languages", e);
+            this.loadMessages();
+        } catch (IOException | UncheckedIOException e) {
+            throw new IllegalStateException("Failed to load config.yml or languages", e);
         }
 
         enablePlayerListener();
@@ -78,17 +73,15 @@ public final class ServerConnectorPlugin {
 
         getProxy().getEventManager().unregisterListeners(this);
 
-        registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
-
-        translationDirectory.unload();
+        this.registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
+        this.registeredSlashServerCommands.clear();
+        this.localizedMessagesMap.clear();
     }
 
     @Subscribe
     public void onReload(ProxyReloadEvent ignored) {
-        if (!registeredSlashServerCommands.isEmpty()) {
-            registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
-            enableSlashServer();
-        }
+        this.registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
+        enableSlashServer();
     }
 
     public @NotNull ProxyServer getProxy() {
@@ -97,6 +90,24 @@ public final class ServerConnectorPlugin {
 
     public @NotNull ServerConnectorConfig getConfig() {
         return config;
+    }
+
+    public @NotNull Messages getLocalizedMessages(@Nullable CommandSource sender) {
+        if (sender instanceof Player) {
+            return this.getLocalizedMessages(((Player) sender).getEffectiveLocale());
+        } else {
+            return this.getLocalizedMessages((Locale) null);
+        }
+    }
+
+    public @NotNull Messages getLocalizedMessages(@Nullable Locale locale) {
+        var messages = this.localizedMessagesMap.get(locale);
+
+        if (messages == null && locale != null) {
+            messages = this.localizedMessagesMap.get(new Locale(locale.getLanguage()));
+        }
+
+        return messages != null ? messages : this.localizedMessagesMap.get(null);
     }
 
     private void loadConfig() throws IOException {
@@ -131,6 +142,42 @@ public final class ServerConnectorPlugin {
         this.config.fallbackServer = node.getNode("server-to-send-when-kicked").getString();
     }
 
+    private void loadMessages() throws IOException {
+        Path directory = this.dataDirectory.resolve("languages");
+        Files.createDirectories(directory);
+        this.localizedMessagesMap.put(null, new Messages(ConfigurationNode.root()));
+        this.saveResource("en.yml", directory.resolve("en.yml"));
+        this.saveResource("ja_JP.yml", directory.resolve("ja_JP.yml"));
+        try (Stream<Path> list = Files.list(directory)) {
+            list.forEach(this::loadMessageFile);
+        }
+    }
+
+    private void loadMessageFile(Path filepath) {
+        String filename = filepath.getFileName().toString();
+        if (!filename.endsWith(".yml")) {
+            return;
+        }
+
+        Locale locale = Translator.parseLocale(filename.substring(0, filename.length() - 4));
+
+        if (locale == null) {
+            return;
+        }
+
+        ConfigurationNode source;
+
+        try {
+           source = YAMLConfigurationLoader.builder().setPath(filepath).build().load();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        var messageMap = new Messages(source);
+        this.localizedMessagesMap.put(locale, messageMap);
+        this.localizedMessagesMap.put(new Locale(locale.getLanguage()), messageMap);
+    }
+
     private void saveResource(String resourceName, Path filepath) throws IOException {
         if (!Files.isRegularFile(filepath)) {
             try (InputStream input = this.getClass().getClassLoader().getResourceAsStream(resourceName)) {
@@ -157,15 +204,5 @@ public final class ServerConnectorPlugin {
         if (this.config.sendFirstJoinMessage && this.getProxy().getPluginManager().getPlugin("LuckPerms").isPresent()) {
             this.firstJoinListener = new FirstJoinListener(this);
         }
-    }
-
-    private void saveDefaultLanguages(@NotNull Path directory) throws IOException {
-        var defaultFileName = "en.yml";
-        var defaultFile = directory.resolve(defaultFileName);
-        this.saveResource(defaultFileName, defaultFile);
-
-        var japaneseFileName = "ja_JP.yml";
-        var japaneseFile = directory.resolve(japaneseFileName);
-        this.saveResource(japaneseFileName, japaneseFile);
     }
 }

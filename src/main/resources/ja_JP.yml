@@ -1,22 +1,15 @@
-serverconnector:
-  prefix: ""
-  server:
-    no-permission: "サーバー {0} に接続する権限がありません: {1}"
-    kick: "サーバー {0} からキックされました: {1}"
-    switch: "{0} はサーバー {1} に移動しました。"
-  proxy:
-    no-permission: "サーバーに接続する権限がありません."
-    join: "{0} がサーバーにログインしました。"
-    leave: "{0} がサーバーからログアウトしました。"
-    first-join:
-      # 最終的に送信されるメッセージのレイアウト: "<pert-1> <pert-2>"
-      part-1: "{0} が初めてログインしました。"
-      part-2: "ようこそサーバーへ!"
-  command:
-    slash-server:
-      only-player: "このコマンドはプレイヤーのみ実行できます。"
-      no-permission: "このコマンドを実行する権限がありません: {0}"
-      already-connected: "すでに同じサーバーに接続しています。"
-      connecting: "{0} に接続しています..."
-      connecting-other: "{0} を {1} に接続させています..."
-      player-not-found: "プレイヤー {0} は見つかりませんでした。"
+server:
+  no-permission: "<red>サーバー <aqua><server><red> に接続する権限がありません。"
+  kick: "<red>サーバー <aqua><server><red> からキックされました: <reset><reason>"
+  switch: "<aqua><player><gray> はサーバー <aqua><server><gray> に移動しました。"
+proxy:
+  no-permission: "<red>サーバーに接続する権限がありません。"
+  join: "<aqua><player><gray> がサーバーにログインしました。"
+  leave: "<aqua><player><gray> がサーバーにログアウトしました。"
+  first-join: "<aqua><player><gray> が初めてログインしました。<yellow>ようこそサーバーへ!"
+slash-server:
+  no-permission: "<red>このコマンドを実行する権限がありません。"
+  already-connected: "<red>すでに同じサーバーに接続しています。"
+  connecting: "<gray>サーバー <aqua><server><gray> に接続しています..."
+  connecting-other: "<gray>プレイヤー <aqua><player><gray> をサーバー <aqua><server><gray> に接続させています..."
+  player-not-found: "<gray>プレイヤー <aqua><arg><gray> は見つかりませんでした。"
