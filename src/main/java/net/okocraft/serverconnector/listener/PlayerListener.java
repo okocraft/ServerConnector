@@ -57,7 +57,7 @@ public class PlayerListener {
 
     @Subscribe
     public void onConnect(@NotNull ServerPreConnectEvent event) {
-        if (this.shouldIgnore(event) || event.getPreviousServer() == null) {
+        if (this.shouldIgnore(event)) {
             return;
         }
 
@@ -134,9 +134,15 @@ public class PlayerListener {
         return permissionNode == null || player.hasPermission(permissionNode);
     }
 
-    private @NotNull String getServerPermission(@NotNull String serverName) {
+    private @Nullable String getServerPermission(@NotNull String serverName) {
         var customPermission = this.plugin.getConfig().serverPermissionMap.get(serverName);
-        return customPermission != null && !customPermission.isEmpty() ? customPermission : this.plugin.getConfig().serverPermissionMap.get("default");
+
+        if (customPermission != null) {
+            return customPermission;
+        }
+
+        var defaultPermission = this.plugin.getConfig().serverPermissionMap.get("default");
+        return defaultPermission != null ? defaultPermission.replace("%server_name%", serverName) : null;
     }
 
     private @Nullable RegisteredServer getFallbackServer() {
