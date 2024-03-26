@@ -16,10 +16,11 @@ import net.okocraft.serverconnector.config.ServerConnectorConfig;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.listener.FirstJoinListener;
 import net.okocraft.serverconnector.listener.PlayerListener;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,15 +118,15 @@ public final class ServerConnectorPlugin {
             this.saveResource("config.yml", filepath);
         }
 
-        var node = YAMLConfigurationLoader.builder().setPath(filepath).build().load();
+        var node = YamlConfigurationLoader.builder().path(filepath).build().load();
 
-        var messageSendingSetting = node.getNode("message-sending-setting");
-        this.config.sendJoinMessage = messageSendingSetting.getNode("join").getBoolean();
-        this.config.sendFirstJoinMessage = messageSendingSetting.getNode("first-join").getBoolean();
-        this.config.sendLeaveMessage = messageSendingSetting.getNode("leave").getBoolean();
-        this.config.sendSwitchMessage = messageSendingSetting.getNode("switch").getBoolean();
+        var messageSendingSetting = node.node("message-sending-setting");
+        this.config.sendJoinMessage = messageSendingSetting.node("join").getBoolean();
+        this.config.sendFirstJoinMessage = messageSendingSetting.node("first-join").getBoolean();
+        this.config.sendLeaveMessage = messageSendingSetting.node("leave").getBoolean();
+        this.config.sendSwitchMessage = messageSendingSetting.node("switch").getBoolean();
 
-        for (var entry : node.getNode("server-permission").getChildrenMap().entrySet()) {
+        for (var entry : node.node("server-permission").childrenMap().entrySet()) {
             var key = String.valueOf(entry.getKey());
             switch (key) {
                 case "enable":
@@ -139,13 +140,13 @@ public final class ServerConnectorPlugin {
             }
         }
 
-        this.config.fallbackServer = node.getNode("server-to-send-when-kicked").getString();
+        this.config.fallbackServer = node.node("server-to-send-when-kicked").getString();
     }
 
     private void loadMessages() throws IOException {
         Path directory = this.dataDirectory.resolve("languages");
         Files.createDirectories(directory);
-        this.localizedMessagesMap.put(null, new Messages(ConfigurationNode.root()));
+        this.localizedMessagesMap.put(null, new Messages(BasicConfigurationNode.root()));
         this.saveResource("en.yml", directory.resolve("en.yml"));
         this.saveResource("ja_JP.yml", directory.resolve("ja_JP.yml"));
         try (Stream<Path> list = Files.list(directory)) {
@@ -168,7 +169,7 @@ public final class ServerConnectorPlugin {
         ConfigurationNode source;
 
         try {
-           source = YAMLConfigurationLoader.builder().setPath(filepath).build().load();
+           source = YamlConfigurationLoader.builder().path(filepath).build().load();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -5,8 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import ninja.leaping.configurate.ConfigurationNode;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.ConfigurationNode;
 
 public final class Messages {
 
@@ -89,7 +89,7 @@ public final class Messages {
     }
 
     private static @NotNull String getMessage(@NotNull ConfigurationNode source, @NotNull String def, @NotNull Object @NotNull ... keys) {
-        return source.getNode(keys).getString(def);
+        return source.node(keys).getString(def);
     }
 
     private static @NotNull TagResolver player(@NotNull Player player) {
