@@ -6,14 +6,25 @@
 
 ## Features
 
-- サーバーごとの接続権限に基づくアクセス制限 (`bungeecord.server.<name>`)
-- `/<server-name>` での接続試行コマンド
-- 多言語化可能なサーバー参加/移動/退出/その他各メッセージ
-- サーバーから kick された際のサーバー転送機能
-- スナップショットサーバーへのダイレクト接続 (BungeeCord の対応状況に依存)
+- Access controls for connecting server based on the permissions (default: `serverconnector.connect.%server_name%`)
+- Add commands `/<server-name>` that try to connect to the server
+- Server join/switch/quit messages
+- Fallback server when the player is kicked
+
+## Requirements
+
+- Java 17
+- Velocity 3.3.0+
+- (Optional) LuckPerms - For detecting the players who are connected for the first time
 
 ## Permissions
 
-- `bungeecord.server.<server-name>` - `<server-name>` に接続する権限
-- `serverconnector.slashserver.<server-name>` - `/<server-name>` の使用権限
-- `serverconnector.slashserver.other-players` - `/<server-name> <player-name>` で他人を他のサーバーに移動させる権限
+- `serverconnector.connect.%server_name%` - the permission to connect to the server, configurable in `config.yml`
+- `serverconnector.slashserver.<server-name>` - the permission to use `/<server-name>`
+- `serverconnector.slashserver.other-players` - the permission to connect other player to the server using `/<server-name> <player-name>`
+
+## License
+
+This project is under the Apache License version 2.0. Please see [LICENSE](LICENSE) for more info.
+
+Copyright © 2021-2024, OKOCRAFT and Siroshun09
