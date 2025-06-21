@@ -51,7 +51,7 @@ public final class ServerConnectorPlugin {
         this.dataDirectory = dataDirectory;
     }
 
-    @Subscribe(order = PostOrder.FIRST)
+    @Subscribe
     public void onEnable(ProxyInitializeEvent ignored) {
         try {
             Files.createDirectories(this.dataDirectory);
@@ -66,7 +66,7 @@ public final class ServerConnectorPlugin {
         enableFirstJoinDetector();
     }
 
-    @Subscribe(order = PostOrder.LAST)
+    @Subscribe
     public void onDisable(ProxyShutdownEvent ignored) {
         if (this.firstJoinListener != null) {
             this.firstJoinListener.unsubscribe();
