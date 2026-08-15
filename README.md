@@ -13,7 +13,7 @@
 
 ## Requirements
 
-- Java 17
+- Java 25
 - Velocity 3.4.0+
 - (Optional) LuckPerms - For detecting the players who are connected for the first time
 
