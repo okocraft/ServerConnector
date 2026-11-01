@@ -5,6 +5,7 @@ import org.spongepowered.configurate.ConfigurationNode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public record ServerConnectorConfig(
         boolean sendJoinMessage,
@@ -37,12 +38,8 @@ public record ServerConnectorConfig(
             switch (key) {
                 case "enable" -> enableServerPermission = entry.getValue().getBoolean();
                 case "proxy" -> proxyPermission = nonBlankOrNull(entry.getValue().getString());
-                default -> {
-                    var permission = nonBlankOrNull(entry.getValue().getString());
-                    if (permission != null) {
-                        serverPermissionMap.put(key, permission);
-                    }
-                }
+                // Blank values are kept so that they can override the default permission.
+                default -> serverPermissionMap.put(key, Objects.requireNonNullElse(entry.getValue().getString(), ""));
             }
         }
 
@@ -68,10 +65,10 @@ public record ServerConnectorConfig(
         var customPermission = this.serverPermissionMap.get(serverName);
 
         if (customPermission != null) {
-            return customPermission;
+            return nonBlankOrNull(customPermission);
         }
 
-        var defaultPermission = this.serverPermissionMap.get(DEFAULT_PERMISSION_KEY);
+        var defaultPermission = nonBlankOrNull(this.serverPermissionMap.get(DEFAULT_PERMISSION_KEY));
         return defaultPermission != null ? defaultPermission.replace(SERVER_NAME_PLACEHOLDER, serverName) : null;
     }
 
