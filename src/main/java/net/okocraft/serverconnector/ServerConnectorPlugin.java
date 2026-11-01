@@ -2,7 +2,6 @@ package net.okocraft.serverconnector;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyReloadEvent;
@@ -16,14 +15,12 @@ import net.okocraft.serverconnector.config.ServerConnectorConfig;
 import net.okocraft.serverconnector.lang.Messages;
 import net.okocraft.serverconnector.listener.FirstJoinListener;
 import net.okocraft.serverconnector.listener.PlayerListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.okocraft.serverconnector.util.FirstJoinPlayerHolder;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.configurate.BasicConfigurationNode;
-import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,177 +30,151 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public final class ServerConnectorPlugin {
 
+    private static final String CONFIG_FILENAME = "config.yml";
+    private static final String LANGUAGES_DIRECTORY = "languages";
+    private static final List<String> BUNDLED_LANGUAGE_FILES = List.of("en.yml", "ja_JP.yml");
+    private static final String YAML_EXTENSION = ".yml";
+
     private final ProxyServer proxy;
-    private final ServerConnectorConfig config = new ServerConnectorConfig();
-    private final Map<Locale, Messages> localizedMessagesMap = new HashMap<>();
     private final Path dataDirectory;
+    private final FirstJoinPlayerHolder firstJoinPlayerHolder = new FirstJoinPlayerHolder();
     private final List<SlashServerCommand> registeredSlashServerCommands = new ArrayList<>();
 
-    private FirstJoinListener firstJoinListener;
+    private volatile ServerConnectorConfig config;
+    private volatile Map<Locale, Messages> localizedMessages = Map.of();
+    private volatile Messages defaultMessages = Messages.defaults();
+    private @Nullable FirstJoinListener firstJoinListener;
 
     @Inject
-    public ServerConnectorPlugin(@NotNull ProxyServer proxy, @DataDirectory Path dataDirectory) {
+    public ServerConnectorPlugin(ProxyServer proxy, @DataDirectory Path dataDirectory) {
         this.proxy = proxy;
         this.dataDirectory = dataDirectory;
+        this.config = ServerConnectorConfig.load(BasicConfigurationNode.root());
     }
 
     @Subscribe
     public void onEnable(ProxyInitializeEvent ignored) {
         try {
             Files.createDirectories(this.dataDirectory);
-            this.loadConfig();
+            this.config = this.loadConfig();
             this.loadMessages();
         } catch (IOException | UncheckedIOException e) {
             throw new IllegalStateException("Failed to load config.yml or languages", e);
         }
 
-        enablePlayerListener();
-        enableSlashServer();
-        enableFirstJoinDetector();
+        this.proxy.getEventManager().register(this, new PlayerListener(this, this.firstJoinPlayerHolder));
+        this.registerSlashServerCommands();
+        this.enableFirstJoinDetector();
     }
 
     @Subscribe
     public void onDisable(ProxyShutdownEvent ignored) {
         if (this.firstJoinListener != null) {
             this.firstJoinListener.unsubscribe();
+            this.firstJoinListener = null;
         }
 
-        getProxy().getEventManager().unregisterListeners(this);
-
-        this.registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
-        this.registeredSlashServerCommands.clear();
-        this.localizedMessagesMap.clear();
+        this.proxy.getEventManager().unregisterListeners(this);
+        this.unregisterSlashServerCommands();
+        this.firstJoinPlayerHolder.clear();
     }
 
     @Subscribe
     public void onReload(ProxyReloadEvent ignored) {
-        this.registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
-        enableSlashServer();
+        this.unregisterSlashServerCommands();
+        this.registerSlashServerCommands();
     }
 
-    public @NotNull ProxyServer getProxy() {
-        return proxy;
+    public ProxyServer getProxy() {
+        return this.proxy;
     }
 
-    public @NotNull ServerConnectorConfig getConfig() {
-        return config;
+    public ServerConnectorConfig getConfig() {
+        return this.config;
     }
 
-    public @NotNull Messages getLocalizedMessages(@Nullable CommandSource sender) {
-        if (sender instanceof Player) {
-            return this.getLocalizedMessages(((Player) sender).getEffectiveLocale());
-        } else {
-            return this.getLocalizedMessages((Locale) null);
-        }
+    public Messages getLocalizedMessages(@Nullable CommandSource sender) {
+        return this.getLocalizedMessages(sender instanceof Player player ? player.getEffectiveLocale() : null);
     }
 
-    public @NotNull Messages getLocalizedMessages(@Nullable Locale locale) {
-        var messages = this.localizedMessagesMap.get(locale);
-
-        if (messages == null && locale != null) {
-            messages = this.localizedMessagesMap.get(new Locale(locale.getLanguage()));
+    public Messages getLocalizedMessages(@Nullable Locale locale) {
+        if (locale == null) {
+            return this.defaultMessages;
         }
 
-        return messages != null ? messages : this.localizedMessagesMap.get(null);
+        var messages = this.localizedMessages.get(locale);
+
+        if (messages == null) {
+            messages = this.localizedMessages.get(Locale.of(locale.getLanguage()));
+        }
+
+        return messages != null ? messages : this.defaultMessages;
     }
 
-    private void loadConfig() throws IOException {
-        var filepath = this.dataDirectory.resolve("config.yml");
-
-        if (!Files.isRegularFile(filepath)) {
-            this.saveResource("config.yml", filepath);
-        }
-
-        var node = YamlConfigurationLoader.builder().path(filepath).build().load();
-
-        var messageSendingSetting = node.node("message-sending-setting");
-        this.config.sendJoinMessage = messageSendingSetting.node("join").getBoolean();
-        this.config.sendFirstJoinMessage = messageSendingSetting.node("first-join").getBoolean();
-        this.config.sendLeaveMessage = messageSendingSetting.node("leave").getBoolean();
-        this.config.sendSwitchMessage = messageSendingSetting.node("switch").getBoolean();
-
-        for (var entry : node.node("server-permission").childrenMap().entrySet()) {
-            var key = String.valueOf(entry.getKey());
-            switch (key) {
-                case "enable":
-                    this.config.enableServerPermission = entry.getValue().getBoolean();
-                    break;
-                case "proxy":
-                    this.config.proxyPermission = entry.getValue().getString();
-                    break;
-                default:
-                    this.config.serverPermissionMap.put(key, entry.getValue().getString());
-            }
-        }
-
-        this.config.fallbackServer = node.node("server-to-send-when-kicked").getString();
+    private ServerConnectorConfig loadConfig() throws IOException {
+        var filepath = this.dataDirectory.resolve(CONFIG_FILENAME);
+        this.saveResourceIfNotExists(CONFIG_FILENAME, filepath);
+        return ServerConnectorConfig.load(YamlConfigurationLoader.builder().path(filepath).build().load());
     }
 
     private void loadMessages() throws IOException {
-        Path directory = this.dataDirectory.resolve("languages");
+        var directory = this.dataDirectory.resolve(LANGUAGES_DIRECTORY);
         Files.createDirectories(directory);
-        this.localizedMessagesMap.put(null, new Messages(BasicConfigurationNode.root()));
-        this.saveResource("en.yml", directory.resolve("en.yml"));
-        this.saveResource("ja_JP.yml", directory.resolve("ja_JP.yml"));
-        try (Stream<Path> list = Files.list(directory)) {
-            list.forEach(this::loadMessageFile);
-        }
-    }
 
-    private void loadMessageFile(Path filepath) {
-        String filename = filepath.getFileName().toString();
-        if (!filename.endsWith(".yml")) {
-            return;
+        for (var filename : BUNDLED_LANGUAGE_FILES) {
+            this.saveResourceIfNotExists(filename, directory.resolve(filename));
         }
 
-        Locale locale = Translator.parseLocale(filename.substring(0, filename.length() - 4));
+        var loaded = new HashMap<Locale, Messages>();
 
-        if (locale == null) {
-            return;
-        }
+        try (var files = Files.list(directory)) {
+            for (var filepath : files.filter(path -> path.getFileName().toString().endsWith(YAML_EXTENSION)).toList()) {
+                var filename = filepath.getFileName().toString();
+                var locale = Translator.parseLocale(filename.substring(0, filename.length() - YAML_EXTENSION.length()));
 
-        ConfigurationNode source;
+                if (locale == null) {
+                    continue;
+                }
 
-        try {
-           source = YamlConfigurationLoader.builder().path(filepath).build().load();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        var messageMap = new Messages(source);
-        this.localizedMessagesMap.put(locale, messageMap);
-        this.localizedMessagesMap.put(new Locale(locale.getLanguage()), messageMap);
-    }
-
-    private void saveResource(String resourceName, Path filepath) throws IOException {
-        if (!Files.isRegularFile(filepath)) {
-            try (InputStream input = this.getClass().getClassLoader().getResourceAsStream(resourceName)) {
-                Files.copy(Objects.requireNonNull(input), filepath);
+                var messages = new Messages(YamlConfigurationLoader.builder().path(filepath).build().load());
+                loaded.put(locale, messages);
+                loaded.putIfAbsent(Locale.of(locale.getLanguage()), messages);
             }
         }
+
+        this.localizedMessages = Map.copyOf(loaded);
+        this.defaultMessages = loaded.getOrDefault(Locale.ENGLISH, Messages.defaults());
     }
 
-    private void enablePlayerListener() {
-        var playerListener = new PlayerListener(this);
-        getProxy().getEventManager().register(this, playerListener);
+    private void saveResourceIfNotExists(String resourceName, Path filepath) throws IOException {
+        if (Files.isRegularFile(filepath)) {
+            return;
+        }
+
+        try (var input = this.getClass().getClassLoader().getResourceAsStream(resourceName)) {
+            Files.copy(Objects.requireNonNull(input, () -> resourceName + " is not found in the jar"), filepath);
+        }
     }
 
-    public void enableSlashServer() {
-        getProxy().getAllServers().stream()
-                .map(server -> new SlashServerCommand(this, server))
-                .forEach(command -> {
-                    command.register();
-                    registeredSlashServerCommands.add(command);
-                });
+    private void registerSlashServerCommands() {
+        for (var server : this.proxy.getAllServers()) {
+            var command = new SlashServerCommand(this, server);
+            command.register();
+            this.registeredSlashServerCommands.add(command);
+        }
+    }
+
+    private void unregisterSlashServerCommands() {
+        this.registeredSlashServerCommands.forEach(SlashServerCommand::unregister);
+        this.registeredSlashServerCommands.clear();
     }
 
     private void enableFirstJoinDetector() {
-        if (this.config.sendFirstJoinMessage && this.getProxy().getPluginManager().getPlugin("LuckPerms").isPresent()) {
-            this.firstJoinListener = new FirstJoinListener(this);
+        if (this.config.sendFirstJoinMessage() && this.proxy.getPluginManager().isLoaded("luckperms")) {
+            this.firstJoinListener = new FirstJoinListener(this, this.firstJoinPlayerHolder);
         }
     }
 }

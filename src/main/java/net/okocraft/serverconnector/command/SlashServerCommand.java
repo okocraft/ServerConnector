@@ -1,6 +1,7 @@
 package net.okocraft.serverconnector.command;
 
 import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ServerConnection;
@@ -9,12 +10,10 @@ import com.velocitypowered.api.proxy.server.ServerInfo;
 import net.kyori.adventure.text.Component;
 import net.okocraft.serverconnector.ServerConnectorPlugin;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-public class SlashServerCommand implements SimpleCommand {
+public final class SlashServerCommand implements SimpleCommand {
 
     private static final String GLOBAL_OTHER_PLAYER_PERMISSION = "serverconnector.slashserver.other-players";
 
@@ -48,42 +47,40 @@ public class SlashServerCommand implements SimpleCommand {
         var messages = this.plugin.getLocalizedMessages(sender);
 
         if (!sender.hasPermission(this.permission)) {
-            sender.sendMessage(messages.slashServerNoPermission);
+            sender.sendMessage(messages.slashServerNoPermission());
             return;
         }
 
-        Player target;
         var args = invocation.arguments();
+        Player target;
 
         if (0 < args.length) {
-            if (!sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) && !sender.hasPermission(otherPermission)) {
-                sender.sendMessage(messages.slashServerNoPermission);
+            if (!this.canConnectOtherPlayers(sender)) {
+                sender.sendMessage(messages.slashServerNoPermission());
                 return;
             }
 
-            target = this.plugin.getProxy().getPlayer(args[0]).orElse(null);
+            var found = this.plugin.getProxy().getPlayer(args[0]);
 
-            if (target == null) {
+            if (found.isEmpty()) {
                 sender.sendMessage(messages.slashServerPlayerNotFound(args[0]));
                 return;
             }
+
+            target = found.get();
+        } else if (sender instanceof Player player) {
+            target = player;
         } else {
-            if (sender instanceof Player) {
-                target = (Player) sender;
-            } else {
-                sender.sendMessage(Component.text("/" + this.serverInfo.getName() + " <player>"));
-                return;
-            }
-        }
-
-        var currentServer = target.getCurrentServer().map(ServerConnection::getServerInfo);
-
-        if (this.serverInfo.equals(currentServer.orElse(null))) {
-            sender.sendMessage(messages.slashServerAlreadyConnected);
+            sender.sendMessage(Component.text("/" + this.serverInfo.getName() + " <player>"));
             return;
         }
 
-        target.sendMessage(messages.slashServerConnecting(this.serverInfo.getName()));
+        if (this.isConnectedToThisServer(target)) {
+            sender.sendMessage(messages.slashServerAlreadyConnected());
+            return;
+        }
+
+        target.sendMessage(this.plugin.getLocalizedMessages(target).slashServerConnecting(this.serverInfo.getName()));
 
         if (sender != target) {
             sender.sendMessage(messages.slashServerConnectingOther(target, this.serverInfo.getName()));
@@ -97,15 +94,28 @@ public class SlashServerCommand implements SimpleCommand {
         var sender = invocation.source();
         var args = invocation.arguments();
 
-        if (args.length <= 1 && (sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) || sender.hasPermission(otherPermission))) {
-            return this.plugin.getProxy().getAllPlayers().stream()
-                    .filter(Predicate.not(sender::equals))
-                    .filter(Predicate.not(player -> this.serverInfo.equals(player.getCurrentServer().map(ServerConnection::getServerInfo).orElse(null))))
-                    .map(Player::getUsername)
-                    .filter(name -> args.length == 0 || name.regionMatches(true, 0, args[0], 0, args[0].length()))
-                    .collect(Collectors.toList());
+        if (1 < args.length || !this.canConnectOtherPlayers(sender)) {
+            return List.of();
         }
 
-        return Collections.emptyList();
+        var prefix = args.length == 0 ? "" : args[0];
+
+        return this.plugin.getProxy().getAllPlayers().stream()
+                .filter(Predicate.not(sender::equals))
+                .filter(Predicate.not(this::isConnectedToThisServer))
+                .map(Player::getUsername)
+                .filter(name -> name.regionMatches(true, 0, prefix, 0, prefix.length()))
+                .toList();
+    }
+
+    private boolean canConnectOtherPlayers(CommandSource sender) {
+        return sender.hasPermission(GLOBAL_OTHER_PLAYER_PERMISSION) || sender.hasPermission(this.otherPermission);
+    }
+
+    private boolean isConnectedToThisServer(Player player) {
+        return player.getCurrentServer()
+                .map(ServerConnection::getServerInfo)
+                .filter(this.serverInfo::equals)
+                .isPresent();
     }
 }

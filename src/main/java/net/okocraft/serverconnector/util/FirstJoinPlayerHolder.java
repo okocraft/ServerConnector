@@ -1,20 +1,22 @@
 package net.okocraft.serverconnector.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class FirstJoinPlayerHolder {
 
-    private static final Set<UUID> FIRST_JOIN_PLAYERS = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> firstJoinPlayers = ConcurrentHashMap.newKeySet();
 
-    public static void add(@NotNull UUID uuid) {
-        FIRST_JOIN_PLAYERS.add(uuid);
+    public void add(UUID uuid) {
+        this.firstJoinPlayers.add(uuid);
     }
 
-    public static boolean remove(@NotNull UUID uuid) {
-        return FIRST_JOIN_PLAYERS.remove(uuid);
+    public boolean remove(UUID uuid) {
+        return this.firstJoinPlayers.remove(uuid);
+    }
+
+    public void clear() {
+        this.firstJoinPlayers.clear();
     }
 }
