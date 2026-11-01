@@ -6,6 +6,11 @@
   "authors": [
     "Siroshun09"
   ],
-  "dependencies": [],
+  "dependencies": [
+    {
+      "id": "luckperms",
+      "optional": true
+    }
+  ],
   "main": "net.okocraft.serverconnector.ServerConnectorPlugin"
 }
